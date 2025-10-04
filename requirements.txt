@@ -1,0 +1,11 @@
+# Dev environment
+pip
+autopep8
+
+# App
+google-generativeai # Client library for the Gemini API
+google-cloud-secret-manager # Client library for Secret Manager
+Pillow # PIL image-loading library
+flask
+gunicorn
+python-dotenv # Library for reading .env files
