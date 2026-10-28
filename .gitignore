@@ -1,0 +1,5 @@
+# キャラ画像・生成物は公開リポジトリに入れない（Drive が正本）
+assets/img/
+out/
+__pycache__/
+*.pyc

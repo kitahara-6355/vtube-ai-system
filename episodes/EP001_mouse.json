@@ -1,0 +1,24 @@
+{
+  "id": "EP001",
+  "title": "社長、マウスと出会う",
+  "story": "STORY-001 マウスとの戦い（クリエイティブ資産 v3.2）",
+  "funnelStage": 1,
+  "scenes": [
+    {"speaker": "shacho", "type": "line", "expression": "default", "line": "見積もりは手書きが一番だ。…だが今日は、PCで作るぞ！"},
+    {"speaker": "nyasan", "type": "monologue", "expression": "worry", "line": "社長、マウスを両手で包んでる…。石鹸じゃないです…"},
+    {"speaker": "shacho", "type": "line", "expression": "panic", "direction": "マウスを握りしめて汗だく、目が泳いでいる", "line": "ダブルクリック？\n二回も押して壊れんか？"},
+    {"speaker": "nyasan", "type": "line", "pose": "point", "line": "大丈夫です。カチカチッて、少しだけ速く2回です"},
+    {"speaker": "shacho", "type": "line", "expression": "joy", "direction": "両手を上げて子どものように喜ぶ", "line": "…開いた！\n開いたぞ、にゃーさん！"},
+    {"speaker": "nyasan", "type": "monologue", "expression": "joy", "line": "紙もハンコも大事。そこに一個ずつ足していけばいいんです"}
+  ],
+  "endCard": {
+    "seconds": 2.5,
+    "message": "ゆっくり、いっしょに。",
+    "cta": "チャンネル登録で、社長の成長を見守ってください"
+  },
+  "upload": {
+    "title": "社長、マウスと出会う【DX事務所のにゃーさん】",
+    "description": "PCが苦手な二代目社長と、ちょっとだけ先を行く事務員にゃーさんの、ゆっくりDX日記。\n紙もハンコも否定しない。ひとつずつ、足していきます。",
+    "hashtags": ["#Shorts", "#DX", "#中小企業", "#PC初心者", "#にゃーさん"]
+  }
+}

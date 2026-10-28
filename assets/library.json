@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "updated": "2026-10-28",
+  "note": "画像の正本は共有ドライブ「美麗書院_共有データ」。ここは台帳だけ。ローカルでは assets/img/<id>.png に置く（.gitignore 済み）。bg=white は白背景で自動切り抜き可、bg=scene は背景込みの1枚絵。",
+  "assets": [
+    {"id": "NY_EXP_DEFAULT", "character": "nyasan", "expression": "default", "framing": "bust", "bg": "white", "driveId": "1yowqjufxDC3Wv7fkLBS94DNIcPaQKNQx", "driveName": "06優しい笑顔（デフォルト）.png"},
+    {"id": "NY_EXP_JOY", "character": "nyasan", "expression": "joy", "framing": "bust", "bg": "white", "driveId": "1_VUkaqEFE8naVNUiPCpTJ2NEmk3zuQPR", "driveName": "05喜びの表情.png"},
+    {"id": "NY_EXP_WORRY", "character": "nyasan", "expression": "worry", "framing": "bust", "bg": "white", "driveId": "1C1CR9T8u9uWMxRshX8sqm7InQ7eK_Knf", "driveName": "07心配そうな顔.png"},
+    {"id": "NY_EXP_TROUBLED", "character": "nyasan", "expression": "troubled", "framing": "bust", "bg": "white", "driveId": "1G9tA69urp_eJpQSDspvQrVZQ6ButvNRg", "driveName": "09困り顔.png"},
+    {"id": "NY_EXP_CHEER", "character": "nyasan", "expression": "cheer", "framing": "bust", "bg": "white", "driveId": "11XtMXBSB511PZI6WfjYTUSCrneJtthpp", "driveName": "08応援する表情.png"},
+    {"id": "NY_POSE_POINT", "character": "nyasan", "expression": "default", "pose": "point", "framing": "full", "bg": "white", "driveId": "1p6uJCPu-DKw4dK7w3iuPcP3z1Eb3d2nI", "driveName": "14指差しポーズ.png"},
+    {"id": "NY_POSE_BOW", "character": "nyasan", "expression": "default", "pose": "bow", "framing": "full", "bg": "white", "driveId": "1HNQphgFYjpZVXXQq7-lKBW7HoI9lhlCn", "driveName": "11お辞儀をしているポーズ.png"},
+    {"id": "NY_POSE_DOCS", "character": "nyasan", "expression": "default", "pose": "docs", "framing": "full", "bg": "white", "driveId": "1KekqcxH0gXI-4O37yXpRMLkmW8_6P7X9", "driveName": "12書類を胸に抱えて立っているポーズ.png"},
+    {"id": "NY_POSE_TEA", "character": "nyasan", "expression": "default", "pose": "tea", "framing": "full", "bg": "white", "driveId": "15CRH3MAkNpMdcx11R1Igccv4DZ3ZD6UN", "driveName": "13お茶を差し出しているポーズ.png"},
+    {"id": "NY_SCENE_PC", "character": "nyasan", "expression": "default", "pose": "pc", "framing": "scene", "bg": "scene", "driveId": "1ei6cSGiNfL047RII4oDOW6934l-5WSkQ", "driveName": "10デスクでPCを操作しているポーズ.png"},
+    {"id": "NY_POSE_EXPLAIN", "character": "nyasan", "expression": "default", "pose": "explain", "framing": "full", "bg": "white", "driveId": "1tZtB38m7Esgf8oIiVsattdkItdalLJlb", "driveName": "説明01両手を広げて説明しているポーズ.png"},
+    {"id": "NY_POSE_EXPLAIN_POINT", "character": "nyasan", "expression": "default", "pose": "point", "framing": "full", "bg": "white", "driveId": "1apfI_h-hrzd2s8w5_Z0Hu3w-wajmSM4s", "driveName": "説明02一点を指差しながら説明.png"},
+    {"id": "NY_POSE_NOD", "character": "nyasan", "expression": "default", "pose": "nod", "framing": "full", "bg": "white", "driveId": "1GvawdbkwAVC6DTMDhE8dcvWtKWEoHh-B", "driveName": "説明03頷きながら聞いている（相槌を打つ）ポーズ.png"},
+    {"id": "NY_POSE_WAVE", "character": "nyasan", "expression": "joy", "pose": "wave", "framing": "full", "bg": "white", "driveId": "1og9hqY8CbXZL9cnNvDUea_TwjRBmpA8z", "driveName": "挨拶01手を振るポーズで明るい笑顔.png"},
+    {"id": "NY_POSE_SHY", "character": "nyasan", "expression": "shy", "pose": "greet", "framing": "full", "bg": "white", "driveId": "1NUW0G2y2isHsMwjz7a0gYZYhdm25FYOP", "driveName": "挨拶02はにかんだ笑顔.png"},
+    {"id": "NY_POSE_BIGSMILE", "character": "nyasan", "expression": "joy", "pose": "greet", "framing": "full", "bg": "white", "driveId": "1Lq48THqWLDhGj8GaRSufufWFTOX9KdnI", "driveName": "挨拶03満面の笑顔の挨拶.png"},
+    {"id": "NY_REF_FRONT", "character": "nyasan", "expression": "default", "pose": "turnaround_front", "framing": "full", "bg": "white", "reference": true, "driveId": "1JIkdSnLZ8wFJ3-NOFEDR1nxMMSzjlKwE", "driveName": "01正面.png"},
+    {"id": "NY_REF_SIDE_R", "character": "nyasan", "expression": "default", "pose": "turnaround_side", "framing": "full", "bg": "white", "reference": true, "driveId": "1oA4jyph9sH7Yeg99-I2OMVkUQj-WbVjS", "driveName": "02側面図（右）.png"},
+    {"id": "SH_MASTER_2D", "character": "shacho", "expression": "default", "framing": "full", "bg": "white", "reference": true, "driveId": "1q46cRnRhvJhDU3ytO3w6Lc46SBNIf1g_", "driveName": "2D_master_shacho.png"}
+  ],
+  "excluded": [
+    {"driveId": "1FnG4mb88a1zWm5LSb2GL7aiyze9hPdPm", "driveName": "Scene3_初心者社長_困り顔.png", "reason": "社長の設定画と別人（髪色・服装が違う）。使わない。"},
+    {"driveId": "1m-qqXEjW_tEKcrZL8IDAvTFzClOjiMrm", "driveName": "Scene1_初心者社長_自信、誇り.png", "reason": "実写寄りで別人。使わない。"}
+  ]
+}
