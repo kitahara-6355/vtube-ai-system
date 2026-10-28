@@ -2,6 +2,7 @@
 """にゃーさんショートを「動く漫画」として書き出す（制作の第1段階）。
 
   python tools/manga.py sheet  episodes/EP001_mouse.json   # コマ一覧（ページごとの完成形）を画像で出す
+  python tools/manga.py prep   episodes/EP001_mouse.json   # 足りない絵の生成指示書と、Flow のコマ画像・依頼文を作る
   python tools/manga.py render episodes/EP001_mouse.json   # 縦型ショート(1080x1920)を書き出す
 
 台本の各シーンが漫画の1ページ。シーンの "panels" に1コマずつ書く。コマは決めた秒数で順に現れ、
@@ -114,9 +115,51 @@ def tone(size: tuple[int, int], dark: bool = False) -> Image.Image:
     return img
 
 
+def draw_screen(size: tuple[int, int], panel: dict) -> Image.Image:
+    """パソコン画面のアップ（漫画のコマ用の描き文字ならぬ描き画面）。素材がなくても描ける。"""
+    w, h = size
+    img = Image.new("RGB", size, PAPER)
+    d = ImageDraw.Draw(img)
+    m = int(min(w, h) * 0.07)
+    x0, y0, x1, y1 = m, m, w - m, h - m
+    d.rounded_rectangle((x0, y0, x1, y1), radius=24, fill=(52, 56, 66), outline=INK, width=8)
+    sx0, sy0, sx1, sy1 = x0 + 26, y0 + 26, x1 - 26, y1 - 26
+    d.rectangle((sx0, sy0, sx1, sy1), fill=(236, 244, 252), outline=INK, width=4)
+    bar = int((sy1 - sy0) * 0.09)
+    d.rectangle((sx0, sy0, sx1, sy0 + bar), fill=(70, 120, 200))
+    for k in range(3):
+        cx = sx1 - 30 - k * 40
+        d.ellipse((cx - 11, sy0 + bar / 2 - 11, cx + 11, sy0 + bar / 2 + 11), fill=PAPER)
+    rows = 9
+    for r in range(rows):
+        y = sy0 + bar + 30 + r * (sy1 - sy0 - bar - 50) / rows
+        ln = 0.55 + 0.35 * ((r * 37) % 10) / 10
+        d.rounded_rectangle((sx0 + 34, y, sx0 + 34 + (sx1 - sx0 - 80) * ln, y + 16), radius=8, fill=(160, 172, 190))
+    if panel.get("scroll"):
+        for k in range(14):
+            x = sx0 + 20 + k * (sx1 - sx0 - 40) / 13
+            d.line((x, sy0 + bar + 10, x, sy1 - 10), fill=(120, 130, 150), width=3)
+    if panel.get("cursor"):
+        cx = sx0 + (sx1 - sx0) * panel["cursor"][0]
+        cy = sy0 + (sy1 - sy0) * panel["cursor"][1]
+        k = min(w, h) * 0.05
+        arrow = [(cx, cy), (cx, cy + k * 1.6), (cx + k * 0.42, cy + k * 1.2), (cx + k * 0.75, cy + k * 1.85),
+                 (cx + k * 1.0, cy + k * 1.72), (cx + k * 0.68, cy + k * 1.08), (cx + k * 1.18, cy + k * 1.05)]
+        d.polygon(arrow, fill=PAPER, outline=INK, width=4)
+        if panel.get("circle", True):
+            r = k * 1.6
+            d.ellipse((cx - r * 0.6, cy - r * 0.5, cx + r * 1.4, cy + r * 1.5), outline=(220, 40, 40), width=8)
+    return img
+
+
 def panel_content(panel: dict, size: tuple[int, int], assets: dict, monologue: bool) -> Image.Image:
     """コマの中身（背景効果＋キャラ）。寄せても粗くならないよう少し大きめに作る。"""
     pw, ph = int(size[0] * (1 + ZOOM)), int(size[1] * (1 + ZOOM))
+    if panel["asset"] == "@screen":
+        img = draw_screen((pw, ph), panel).convert("RGBA")
+        if "lines" in panel.get("fx", []):
+            img.alpha_composite(speed_lines((pw, ph), dense=60, seed=7))
+        return img.convert("RGB")
     fx = panel.get("fx", [])
     if "flash" in fx:
         bg = Image.new("RGB", (pw, ph), (255, 246, 206))
@@ -150,8 +193,11 @@ class Placed:
     start: float
     seconds: float
     content: Image.Image | None = None
+    frames: list | None = None  # 第3段階: 採用した Flow の動画のコマ
     overlay: Image.Image | None = None  # 吹き出し・擬音（ページ座標）
     monologue: bool = False
+    key: str = ""
+    placeholder: bool = False
 
 
 @dataclass
@@ -222,7 +268,7 @@ def balloon(overlay: Image.Image, box, panel: dict, monologue: bool) -> None:
     rx, ry = tw * 0.5 + size * 0.95, th * 0.5 + size * 0.85
     # はみ出しはページの内側に収める（コマの枠からは少しはみ出してよい）
     cx = min(max(cx, MARGIN + rx - 10), W - MARGIN - rx + 10)
-    cy = min(max(cy, PAGE_TOP + ry - 30), PAGE_BOTTOM - ry + 30)
+    cy = min(max(cy, PAGE_TOP + ry + 4), PAGE_BOTTOM - ry + 30)
     tx, ty = panel.get("to", [0.45, 0.5])
     tgt = (bx0 + (bx1 - bx0) * tx, by0 + (by1 - by0) * ty)
     ang = math.atan2(tgt[1] - cy, tgt[0] - cx)
@@ -310,6 +356,30 @@ def sfx(overlay: Image.Image, box, panel: dict) -> None:
 
 # ---------- 組み立て ----------
 
+def resolve(panel: dict) -> tuple[dict, bool]:
+    """"need"（第2段階で作る絵）があればそれを使う。まだなければ "asset" を代役にする。"""
+    need = panel.get("need")
+    if not need:
+        return panel, False
+    if (ny.IMG_DIR / f"{need['id']}.png").exists():
+        p = dict(panel, asset=need["id"])
+        if "crop" in need:
+            p["crop"] = need["crop"]
+        return p, False
+    return panel, True
+
+
+def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None) -> list[Image.Image]:
+    """Flow の動画をコマの大きさに切り抜いて、表示する秒数ぶんのコマにする。音は使わない。"""
+    a, b = rng or (0.0, seconds)
+    w, h = size
+    r = subprocess.run(["ffmpeg", "-loglevel", "error", "-ss", f"{a}", "-to", f"{b}", "-i", str(clip),
+                        "-vf", f"setpts=PTS*{seconds / (b - a)},fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}",
+                        "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True)
+    n = len(r.stdout) // (w * h * 3)
+    return [Image.frombytes("RGB", (w, h), r.stdout[i * w * h * 3:(i + 1) * w * h * 3]) for i in range(n)]
+
+
 def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
     assets = {a["id"]: a for a in assets_list}
     pages, t = [], 0.0
@@ -320,16 +390,28 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
         page = Page(scene=scene, start=t)
         boxes = layout(panels)
         mono_scene = scene.get("type") == "monologue"
-        for p, box in zip(panels, boxes):
-            if p["asset"] not in assets or not (ny.IMG_DIR / f"{p['asset']}.png").exists():
+        for j, (p, box) in enumerate(zip(panels, boxes)):
+            p, placeholder = resolve(p)
+            if not p["asset"].startswith("@") and p["asset"] not in assets and not (ny.IMG_DIR / f"{p['asset']}.png").exists():
                 sys.exit(f"素材 {p['asset']} が assets/img か台帳にありません。")
             mono = p.get("monologue", mono_scene)
             size = (box[2] - box[0], box[3] - box[1])
-            pl = Placed(p, box, t, float(p.get("seconds", 1.6)), monologue=mono)
+            pl = Placed(p, box, t, float(p.get("seconds", 1.6)), monologue=mono,
+                        key=f"p{len(pages) + 1:02d}-{j + 1}", placeholder=placeholder)
             pl.content = panel_content(p, size, assets, mono)
+            clip = ny.CLIP_DIR / episode["id"] / f"{pl.key}.mp4"
+            if p.get("flow") and clip.exists():
+                if p["flow"].get("approved"):
+                    pl.frames = clip_frames(clip, pl.content.size, pl.seconds, p["flow"].get("range"))
+                else:
+                    print(f"  {pl.key}: Flow の動画は未承認なので絵のまま（台本の flow に \"approved\": true で採用）")
             pl.overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
             sfx(pl.overlay, box, p)
             balloon(pl.overlay, box, p, mono)
+            if placeholder:
+                d = ImageDraw.Draw(pl.overlay)
+                d.rounded_rectangle((box[0] + 14, box[3] - 62, box[0] + 150, box[3] - 14), radius=10, fill=(255, 236, 180, 235))
+                d.text((box[0] + 82, box[3] - 38), "代役", font=ny.font(30), fill=(140, 90, 0), anchor="mm")
             page.panels.append(pl)
             t += pl.seconds
         page.seconds = t - page.start
@@ -356,13 +438,16 @@ def draw_page(page: Page, t: float, base: Image.Image, final: bool = False) -> I
         w, h = x1 - x0, y1 - y0
         progress = min(1.0, max(0.0, local / pl.seconds)) if not final else 1.0
         z = 1 + ZOOM * progress
-        cw, ch = pl.content.size
+        content = pl.content
+        if pl.frames:
+            content = pl.frames[min(len(pl.frames) - 1, max(0, int(local * FPS)))] if not final else pl.frames[-1]
+        cw, ch = content.size
         vw, vh = w * (1 + ZOOM) / z, h * (1 + ZOOM) / z
         ox, oy = (cw - vw) / 2, (ch - vh) / 2
         if "shake" in pl.panel.get("fx", []) and 0 <= local < 0.6 and not final:
             ox += math.sin(local * 70) * 9
             oy += math.cos(local * 55) * 6
-        view = pl.content.crop((int(ox), int(oy), int(ox + vw), int(oy + vh))).resize((w, h), Image.BILINEAR)
+        view = content.crop((int(ox), int(oy), int(ox + vw), int(oy + vh))).resize((w, h), Image.BILINEAR)
         alpha = 1.0 if final else min(1.0, local / FADE)
         if alpha < 1:
             under = img.crop((x0, y0, x1, y1)).convert("RGB")
@@ -454,13 +539,104 @@ def turn(prev: Image.Image, nxt: Image.Image, k: float) -> Image.Image:
     return img
 
 
+GEMINI_STEPS = [
+    "1. Gemini アプリを開き、画像生成を選ぶ（プロトタイプ期は個人の Google AI Pro、運用期は弊社 Business Standard）。",
+    "2. 「参照画像」のファイルを共有ドライブ `(PJ)未整理/追加　にゃーさん/` から添付する（最初の1枚がいちばん大事）。",
+    "3. プロンプトをそのまま貼って生成する。やり直しは1枚につき3回まで。",
+    "4. 採用した1枚を「保存名」で同じフォルダに保存する。Claude Code が取り込み、台帳登録とコマの差し替えをする。",
+]
+
+
+def prep(episode_path: Path) -> Path:
+    """朝は生成ボタンを押すだけにするための準備: Gemini の画像生成指示書と、Flow のコマ画像＋依頼文。"""
+    episode = ny.load_json(episode_path)
+    characters = ny.load_json(ny.CHARACTERS)
+    assets_list = ny.load_json(ny.LIBRARY)["assets"]
+    assets = {a["id"]: a for a in assets_list}
+    pages = build(episode, characters, assets_list)
+    out_dir = ny.OUT_DIR / episode["id"] / "manga"
+    flow_dir = out_dir / "flow"
+    flow_dir.mkdir(parents=True, exist_ok=True)
+    name = lambda aid: assets.get(aid, {}).get("driveName", f"{aid}.png")  # noqa: E731
+
+    needs = [(pl, pl.panel["need"]) for pg in pages for pl in pg.panels if pl.placeholder]
+    g = [f"# 画像の生成指示書 — {episode['id']} {episode['title']}", "",
+         f"足りないコマの絵 {len(needs)} 枚。できるまでは手持ちの絵が「代役」として入っている。", "", "## 手順", *GEMINI_STEPS, ""]
+    for pl, need in needs:
+        ch = characters["characters"][need["character"]]
+        refs = need.get("refs", []) + [pl.panel["asset"]] if pl.panel["asset"] not in need.get("refs", []) else need.get("refs", [])
+        g += [f"## {need['id']}（{pl.key}、代役は {pl.panel['asset']}）", "",
+              f"- キャラ: {ch['displayName']}",
+              "- 参照画像: " + "、".join(f"`{name(r)}`" for r in refs),
+              f"- 保存名: `{need['id']}.png`", "", "```",
+              f"添付した1枚目の画像と同じキャラクター「{ch['displayName']}」を、同じ画風で1枚描いてください。",
+              f"見た目: {ch['visual']}",
+              f"描くもの: {need['desc']}",
+              "条件: 顔・服装・髪型・色・主線の太さは参照画像と完全に同じ。正方形 1024x1024、無地の白背景、"
+              "キャラ全体が画面に収まる。文字・ロゴ・効果線は入れない（吹き出しや集中線は後で入れる）。",
+              "```", ""]
+    gpath = out_dir / "画像の生成指示書.md"
+    gpath.write_text("\n".join(g), encoding="utf-8")
+
+    flows = [(pg, pl) for pg in pages for pl in pg.panels if pl.panel.get("flow")]
+    f = [f"# Flow の指示書 — {episode['id']} {episode['title']}", "",
+         "動かすのは、隣り合う2コマの間の小さな変化だけ。1本で1つの動きにする。", "",
+         "## 手順（全クリップ共通）",
+         "1. Flow で新しいプロジェクトを開き、エージェントの設定を「生成前に確認: 常時」、動画のデフォルトを Veo 3.1 - Fast・x1 にする。",
+         "2. 下の「最初のコマ」「最後のコマ」の順に画像を添付する（順番が大事）。",
+         "3. 依頼文をそのまま貼って送り、確認が出たら「承認」を押す（20クレジット）。",
+         "4. できた動画をダウンロード（720p）し、「保存名」で共有ドライブに置く。採用はコマ確認シートを見て北原さんが決める。", "",
+         f"枠の目安: {len(flows)} 本 × 20 = {len(flows) * 20} クレジット（やり直し込みで {int(len(flows) * 30)} 程度）。", ""]
+    for pg, pl in flows:
+        x0, y0, x1, y1 = pl.box
+        wide = (x1 - x0) >= (y1 - y0)
+        size = (1280, 720) if wide else (720, 1280)
+        # Flow には効果線なしの白背景で、2枚とも同じ切り出し範囲（キャラの大きさと位置をそろえる）で渡す
+        crop = pl.panel.get("crop", "bust")
+        if isinstance(crop, str):
+            crop = "full"  # Flow には全身で渡す（顔だけだと動きを想像できない）
+            end_img = source(pl.panel["asset"], assets)
+            bx = crop_box(end_img, crop, size[0] / size[1], assets.get(pl.panel["asset"], {}).get("framing", "full"))
+            crop = [bx[0] / end_img.width, bx[1] / end_img.height, bx[2] / end_img.width, bx[3] / end_img.height]
+        start = dict(pl.panel, asset=pl.panel["flow"]["from"], crop=pl.panel["flow"].get("fromCrop", crop), fx=[])
+        end = dict(pl.panel, crop=crop, fx=[])
+        for tag, panel in (("start", start), ("end", end)):
+            img = panel_content(panel, (size[0], size[1]), assets, False).resize(size, Image.LANCZOS)
+            img.save(flow_dir / f"{pl.key}_{tag}.png")
+        ch = characters["characters"][pl.panel.get("speaker", pg.scene["speaker"])]
+        f += [f"## {pl.key}（{'横 16:9' if wide else '縦 9:16'}）→ 保存名 `{episode['id']}_{pl.key}.mp4`", "",
+              f"- 最初のコマ: `flow/{pl.key}_start.png`（{start['asset']}）",
+              f"- 最後のコマ: `flow/{pl.key}_end.png`（{pl.panel['asset']}）"
+              + (f"　※代役の絵。`{pl.panel['need']['id']}` を生成してから `prep` をやり直し、そのあとで Flow に送る" if pl.placeholder else ""),
+              "", "```",
+              f"1枚目を最初のフレーム、2枚目を最後のフレームにして、Frames to Video で8秒・{'16:9' if wide else '9:16'}・音声なしの動画を1本作って。",
+              "",
+              f"2D anime chibi character, flat cel shading, thick black outlines. Keep the character design exactly as in the frames "
+              f"({ch['visual'].replace('、白背景', '').replace('。白背景', '')}).",
+              f"Motion: {pl.panel['flow']['motion']}",
+              "The video starts exactly on the first image and ends exactly on the second image. "
+              "The change happens within the first 2 seconds, then the character holds the second image still until the end. "
+              "Never return to the first image.",
+              "One continuous shot: fixed camera, no zoom, no cuts, the character stays the same size and position. "
+              "Background stays exactly the same. No text, no new characters.",
+              "Silent video: no voice, no music, no sound effects.",
+              "```", ""]
+    fpath = out_dir / "Flowの指示書.md"
+    fpath.write_text("\n".join(f), encoding="utf-8")
+    print(f"画像 {len(needs)} 枚 → {gpath.relative_to(ny.ROOT)}")
+    print(f"Flow {len(flows)} 本 → {fpath.relative_to(ny.ROOT)}")
+    return out_dir
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["sheet", "render"])
+    ap.add_argument("command", choices=["sheet", "prep", "render"])
     ap.add_argument("episode", type=Path)
     a = ap.parse_args()
     if a.command == "sheet":
         sheet(a.episode)
+    elif a.command == "prep":
+        prep(a.episode)
     else:
         render(a.episode)
 

@@ -97,6 +97,15 @@
               0.2
             ],
             "size": 84
+          },
+          "need": {
+            "id": "SH_POSE_MOUSE_SOAP",
+            "character": "shacho",
+            "refs": [
+              "SH_MASTER_2D"
+            ],
+            "crop": "bust",
+            "desc": "椅子に座った社長が、パソコンのマウスを石鹸のように両手で包み込み、大事そうに胸の前で持っている。困り眉で真剣な顔。上半身中心。机とモニターは描かない。"
           }
         },
         {
@@ -174,7 +183,11 @@
           "to": [
             0.45,
             0.5
-          ]
+          ],
+          "flow": {
+            "from": "SH_EXP_TROUBLED",
+            "motion": "His worried face suddenly turns into panic: eyes go wide, mouth opens wide, a sweat drop pops out."
+          }
         }
       ]
     },
@@ -262,7 +275,7 @@
         },
         {
           "asset": "SH_EXP_EMBARRASSED",
-          "crop": "face",
+          "crop": "bust",
           "h": 0.9,
           "seconds": 1.4,
           "text": "…開いた！",
@@ -273,7 +286,15 @@
           "to": [
             0.45,
             0.5
-          ]
+          ],
+          "need": {
+            "id": "SH_EXP_SURPRISED",
+            "character": "shacho",
+            "refs": [
+              "SH_MASTER_2D"
+            ],
+            "desc": "目をまんまるにして口を小さく開け、ぽかんと驚いている顔。両腕は体の横に下ろしている。全身。"
+          }
         },
         {
           "asset": "SH_POSE_GUTS",
@@ -305,6 +326,10 @@
               120,
               0
             ]
+          },
+          "flow": {
+            "from": "SH_MASTER_2D",
+            "motion": "He breaks into a big open-mouthed smile and raises his right fist up high in one quick motion."
           }
         }
       ]
@@ -316,8 +341,8 @@
       "line": "紙もハンコも大事。そこに一個ずつ足していけばいいんです",
       "panels": [
         {
-          "asset": "NY_EXP_JOY",
-          "crop": "face",
+          "asset": "NY_POSE_TEA",
+          "crop": "bust",
           "fx": [
             "light"
           ],
@@ -328,8 +353,8 @@
             0.3
           ],
           "to": [
-            0.45,
-            0.45
+            0.42,
+            0.35
           ]
         },
         {

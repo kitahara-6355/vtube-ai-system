@@ -39,6 +39,21 @@ description: 「DX事務所のにゃーさん」のYouTubeショートを1本作
 8. **投稿する（人の作業）** — YouTube Studio に弊社 Business Standard アカウントでログインし、`投稿用テキスト.txt` を見ながら予約投稿する。X は手動投稿（X API は使わない方針）。
 9. **記録する** — 投稿日と URL を `episodes/EPxxx_<slug>.json` の `published` に書く。
 
+## 動く漫画で作る（2026-10-28 からの標準）
+
+北原さんの方針: 漫画のコマ送りで完成させ、そこから1コマずつアニメに近づける。詳しくは提案書 https://claude.ai/artifact/KEoJGXdf8b6kHw7NLsGtLj 。
+
+1. 台本の各シーンに `panels`（1コマずつ）を書く。1シーン＝漫画1ページ、2〜3コマ。コマには `asset`（素材ID、`@screen` で描いた画面）、`crop`（full/bust/face か [x0,y0,x1,y1]）、`text`（縦書きの吹き出し）、`sfx`（擬音）、`fx`（lines 集中線 / flash / shake / shout 叫び / tone / light）、`seconds`、`h`/`row`/`w`（コマ割り）を書く。
+2. 足りない絵は `need`（`id`・`character`・`refs`・`desc`）を書く。絵ができるまでは `asset` が「代役」として入る。
+3. 動かすコマは `flow`（`from` 前の絵、`motion` 英語の動き）を書く。1コマ1動作、前後の絵の差は小さく。
+4. 実行する。
+   ```
+   python tools/manga.py sheet  episodes/EPxxx_<slug>.json   # コマ一覧（北原さんの確認用）
+   python tools/manga.py prep   episodes/EPxxx_<slug>.json   # 画像の生成指示書と Flow のコマ画像・依頼文
+   python tools/manga.py render episodes/EPxxx_<slug>.json   # 動く漫画の mp4
+   ```
+5. 生成された絵を `assets/img/<need の id>.png` に置くと自動で差し替わる。Flow の動画は `assets/clips/EPxxx/<コマ番号>.mp4` に置き、北原さんが確認シートを見て採用したら `flow` に `"approved": true` を書く。
+
 ## やらないこと
 - Vertex AI、Gemini API の画像・動画モデル、GCP 上の Claude など従量課金のサービスを呼ぶこと。
 - キャラ画像を公開リポジトリにコミットすること（`assets/img/` は .gitignore 済み）。
