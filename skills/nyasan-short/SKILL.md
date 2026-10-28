@@ -43,7 +43,10 @@ description: 「DX事務所のにゃーさん」のYouTubeショートを1本作
 
 北原さんの方針: 漫画のコマ送りで完成させ、そこから1コマずつアニメに近づける。詳しくは提案書 https://claude.ai/artifact/KEoJGXdf8b6kHw7NLsGtLj 。
 
-1. 台本の各シーンに `panels`（1コマずつ）を書く。1シーン＝漫画1ページ、2〜3コマ。コマには `asset`（素材ID、`@screen` で描いた画面）、`crop`（full/bust/face か [x0,y0,x1,y1]）、`text`（縦書きの吹き出し）、`sfx`（擬音）、`fx`（lines 集中線 / flash / shake / shout 叫び / tone / light）、`seconds`、`h`/`row`/`w`（コマ割り）を書く。
+1. 台本の各シーンに `panels`（1コマずつ）を書く。コマには `asset`（素材ID、`@screen` で描いた画面）、`crop`（full/bust/face か [x0,y0,x1,y1]）、`text`（縦書きの吹き出し）、`sfx`（擬音）、`fx`（lines 集中線 / flash / shake / shout 叫び / tone / light）、`seconds`、`h`（コマの高さの比）を書く。
+   - ページはシーンをまたいで2コマずつ自動で組む（全幅のコマを上下に積む）。見せ場は `"solo": true` で1コマ1ページ、区切りたいときは `"newPage": true`。
+   - 顔の位置を測って寄りを決め、吹き出しの場所をあけてキャラを置くので、顔は切れない。擬音は顔から遠い所に自動で置く（`sfx` の `pos` で指定も可）。
+   - コマ一覧の札でコマ番号・秒数・「代役」「Flow予定」「見せ場」を確認する。
 2. 足りない絵は `need`（`id`・`character`・`refs`・`desc`）を書く。絵ができるまでは `asset` が「代役」として入る。
 3. 動かすコマは `flow`（`from` 前の絵、`motion` 英語の動き）を書く。1コマ1動作、前後の絵の差は小さく。
 4. 実行する。

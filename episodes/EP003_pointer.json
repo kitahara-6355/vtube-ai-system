@@ -186,12 +186,7 @@
         },
         {
           "asset": "SH_POSE_PC_CONFUSED",
-          "crop": [
-            0.28,
-            0.42,
-            0.78,
-            0.82
-          ],
+          "crop": "full",
           "h": 0.8,
           "speaker": "shacho",
           "seconds": 1.3,

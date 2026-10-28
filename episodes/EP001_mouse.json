@@ -256,12 +256,7 @@
       "panels": [
         {
           "asset": "SH_POSE_PC_CONFUSED",
-          "crop": [
-            0.28,
-            0.42,
-            0.78,
-            0.82
-          ],
+          "crop": "full",
           "h": 0.7,
           "seconds": 1.1,
           "sfx": {
@@ -379,7 +374,8 @@
             0.3,
             0.5
           ],
-          "perCol": 8
+          "perCol": 8,
+          "solo": true
         }
       ]
     }

@@ -54,36 +54,6 @@ def source(asset_id: str, assets: dict) -> Image.Image:
     return _cut_cache[asset_id]
 
 
-def crop_box(img: Image.Image, crop, aspect: float, framing: str = "full") -> tuple[float, float, float, float]:
-    """切り出す範囲（元画像の座標）。プリセット full/bust/face か [x0,y0,x1,y1]（0〜1）。コマの縦横比に広げる。
-    framing="bust"（もともと胸から上の絵）は、bust を全体、face を顔まわりとして扱う。"""
-    w, h = img.size
-    if isinstance(crop, list):
-        x0, y0, x1, y1 = crop[0] * w, crop[1] * h, crop[2] * w, crop[3] * h
-    else:
-        bb = img.getchannel("A").point(lambda v: 255 if v > 20 else 0).getbbox() or (0, 0, w, h)
-        bx0, by0, bx1, by1 = bb
-        bw, bh = bx1 - bx0, by1 - by0
-        cx = (bx0 + bx1) / 2
-        if framing == "bust":
-            crop = {"face": "bust_face", "bust": "full"}.get(crop, crop)
-        if crop == "bust_face":
-            x0, x1, y0, y1 = cx - bw * 0.42, cx + bw * 0.42, by0 + bh * 0.08, by0 + bh * 0.8
-        elif crop == "face":
-            x0, x1, y0, y1 = cx - bw * 0.42, cx + bw * 0.42, by0 - bh * 0.04, by0 + bh * 0.58
-        elif crop == "bust":
-            x0, x1, y0, y1 = cx - bw * 0.55, cx + bw * 0.55, by0 - bh * 0.05, by0 + bh * 0.66
-        else:  # full
-            x0, x1, y0, y1 = bx0 - bw * 0.08, bx1 + bw * 0.08, by0 - bh * 0.06, by1 + bh * 0.04
-    cw, ch = x1 - x0, y1 - y0
-    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-    if cw / ch < aspect:
-        cw = ch * aspect
-    else:
-        ch = cw / aspect
-    return cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2
-
-
 def speed_lines(size: tuple[int, int], dense: int = 90, seed: int = 1, color=INK) -> Image.Image:
     """集中線。中心をあけて外側から黒い楔を描く。"""
     w, h = size
@@ -152,36 +122,102 @@ def draw_screen(size: tuple[int, int], panel: dict) -> Image.Image:
     return img
 
 
-def panel_content(panel: dict, size: tuple[int, int], assets: dict, monologue: bool) -> Image.Image:
-    """コマの中身（背景効果＋キャラ）。寄せても粗くならないよう少し大きめに作る。"""
+def head_info(img: Image.Image, framing: str) -> tuple[tuple[int, int, int, int], tuple[float, float, float]]:
+    """キャラ全体の範囲と、頭の中心・幅・高さ（元画像の座標）。頭は上から何割かを頭として測る。"""
+    a = np.asarray(img.getchannel("A")) > 20
+    ys, xs = np.nonzero(a)
+    if len(xs) == 0:
+        return (0, 0, img.width, img.height), (img.width / 2, img.width / 2, img.height / 2)
+    bx0, bx1, by0, by1 = xs.min(), xs.max(), ys.min(), ys.max()
+    head_h = (by1 - by0) * (0.8 if framing == "bust" else 0.5)
+    band = a[by0:int(by0 + head_h)]
+    cols = np.nonzero(band.any(axis=0))[0]
+    mass = band.sum(axis=0)
+    hcx = float((np.arange(band.shape[1]) * mass).sum() / max(1, mass.sum()))
+    head_w = float(cols.max() - cols.min()) if len(cols) else float(bx1 - bx0)
+    return (int(bx0), int(by0), int(bx1), int(by1)), (hcx, head_w, float(head_h))
+
+
+def frame_region(img: Image.Image, crop, aspect: float, framing: str) -> tuple[float, float, float, float]:
+    """切り出す範囲。頭が必ず全部入るように、頭を基準に寄りの強さを決める。"""
+    w, h = img.size
+    if isinstance(crop, list):
+        x0, y0, x1, y1 = crop[0] * w, crop[1] * h, crop[2] * w, crop[3] * h
+        cw, ch = x1 - x0, y1 - y0
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        if cw / ch < aspect:
+            cw = ch * aspect
+        else:
+            ch = cw / aspect
+        return cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2
+    (bx0, by0, bx1, by1), (hcx, head_w, head_h) = head_info(img, framing)
+    if crop == "full":
+        vh = (by1 - by0) * 1.1
+        cx = (bx0 + bx1) / 2
+        vw = vh * aspect
+        if vw < (bx1 - bx0) * 1.06:  # 横に広いポーズは幅で合わせる
+            vw = (bx1 - bx0) * 1.06
+            vh = vw / aspect
+        top = by0 - vh * 0.05
+        return cx - vw / 2, top, cx + vw / 2, top + vh
+    vh = head_h * (1.5 if crop == "face" else 1.85)  # face でもあごまで入れる
+    vw = vh * aspect
+    if vw < head_w * 1.12:  # 縦長のコマでも頭の幅が入るように
+        vw = head_w * 1.12
+        vh = vw / aspect
+    top = by0 - vh * 0.06
+    return hcx - vw / 2, top, hcx + vw / 2, top + vh
+
+
+def panel_background(panel: dict, size: tuple[int, int], monologue: bool) -> Image.Image:
+    fx = panel.get("fx", [])
+    if "flash" in fx:
+        bg = Image.new("RGB", size, (255, 246, 206))
+    elif "tone" in fx or monologue:
+        bg = tone(size, dark=monologue and "light" not in fx)
+    else:
+        bg = Image.new("RGB", size, PAPER)
+    bg = bg.convert("RGBA")
+    if "lines" in fx or "flash" in fx:
+        bg.alpha_composite(speed_lines(size, seed=len(panel.get("text", "")) + 3,
+                                       color=(120, 100, 40) if "flash" in fx else INK))
+    return bg
+
+
+def panel_content(panel: dict, size: tuple[int, int], assets: dict, monologue: bool,
+                  art: tuple[float, float, float, float] = (0, 0, 1, 1)) -> tuple[Image.Image, tuple[float, float]]:
+    """コマの中身（背景効果＋キャラ）と、頭の位置（コマ内の 0〜1）。
+    art はキャラを置く範囲（コマ内の 0〜1）。吹き出しの場所をあけてキャラを置くのに使う。
+    寄せても粗くならないよう少し大きめに作る。"""
     pw, ph = int(size[0] * (1 + ZOOM)), int(size[1] * (1 + ZOOM))
     if panel["asset"] == "@screen":
         img = draw_screen((pw, ph), panel).convert("RGBA")
         if "lines" in panel.get("fx", []):
             img.alpha_composite(speed_lines((pw, ph), dense=60, seed=7))
-        return img.convert("RGB")
-    fx = panel.get("fx", [])
-    if "flash" in fx:
-        bg = Image.new("RGB", (pw, ph), (255, 246, 206))
-    elif "tone" in fx or monologue:
-        bg = tone((pw, ph), dark=monologue and "light" not in fx)
-    else:
-        bg = Image.new("RGB", (pw, ph), PAPER)
-    bg = bg.convert("RGBA")
-    if "lines" in fx or "flash" in fx:
-        bg.alpha_composite(speed_lines((pw, ph), seed=len(panel.get("text", "")) + 3,
-                                       color=(120, 100, 40) if "flash" in fx else INK))
+        return img.convert("RGB"), (0.95, 0.5)
+    bg = panel_background(panel, (pw, ph), monologue)
+    ax0, ay0, ax1, ay1 = int(art[0] * pw), int(art[1] * ph), int(art[2] * pw), int(art[3] * ph)
+    aw, ah = ax1 - ax0, ay1 - ay0
     img = source(panel["asset"], assets)
-    x0, y0, x1, y1 = crop_box(img, panel.get("crop", "bust"), pw / ph, assets.get(panel["asset"], {}).get("framing", "full"))
-    scale = pw / (x1 - x0)
+    meta = assets.get(panel["asset"], {})
+    framing = meta.get("framing", "full")
+    if meta.get("bg") == "scene":
+        x0, y0, x1, y1 = frame_region(img, [0, 0, 1, 1], aw / ah, framing)
+        head = (0.5, 0.35)
+    else:
+        x0, y0, x1, y1 = frame_region(img, panel.get("crop", "bust"), aw / ah, framing)
+        _, (hcx, _, hh) = head_info(img, framing)
+        hy = head_info(img, framing)[0][1] + hh * 0.8  # しっぽは口元に向ける
+        head = ((ax0 + (hcx - x0) / (x1 - x0) * aw) / pw, (ay0 + (hy - y0) / (y1 - y0) * ah) / ph)
+    scale = aw / (x1 - x0)
     resized = img.resize((max(1, int(img.width * scale)), max(1, int(img.height * scale))), Image.LANCZOS)
     canvas = Image.new("RGBA", (pw, ph), (0, 0, 0, 0))
-    canvas.paste(resized, (int(-x0 * scale), int(-y0 * scale)), resized)
+    canvas.paste(resized, (int(ax0 - x0 * scale), int(ay0 - y0 * scale)), resized)
     if monologue and "light" not in panel.get("fx", []):
         dim = Image.new("RGBA", canvas.size, (30, 34, 60, 60))
         canvas = Image.alpha_composite(canvas, Image.composite(dim, Image.new("RGBA", canvas.size, (0, 0, 0, 0)), canvas.getchannel("A")))
     bg.alpha_composite(canvas)
-    return bg.convert("RGB")
+    return bg.convert("RGB"), head
 
 
 # ---------- ページ割り ----------
@@ -198,6 +234,7 @@ class Placed:
     monologue: bool = False
     key: str = ""
     placeholder: bool = False
+    scene: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -209,29 +246,39 @@ class Page:
 
 
 def layout(panels: list[dict]) -> list[tuple[int, int, int, int]]:
-    """コマを行に並べる。同じ "row" のコマは横に並ぶ。行の高さは "h"（比）で決める。"""
-    rows: list[list[int]] = []
-    for i, p in enumerate(panels):
-        if rows and p.get("row") is not None and panels[rows[-1][0]].get("row") == p.get("row"):
-            rows[-1].append(i)
-        else:
-            rows.append([i])
-    weights = [max(panels[i].get("h", 1.0) for i in r) for r in rows]
-    total_h = PAGE_BOTTOM - PAGE_TOP - GUTTER * (len(rows) - 1)
-    boxes: list = [None] * len(panels)
-    y = PAGE_TOP
-    for r, wgt in zip(rows, weights):
+    """ページ内のコマを上から縦に積む（1ページ2コマまで。横に細いコマは作らない）。高さは "h"（比）で決める。"""
+    weights = [p.get("h", 1.0) for p in panels]
+    total_h = PAGE_BOTTOM - PAGE_TOP - GUTTER * (len(panels) - 1)
+    boxes, y = [], PAGE_TOP
+    for wgt in weights:
         rh = int(total_h * wgt / sum(weights))
-        ws = [panels[i].get("w", 1.0) for i in r]
-        total_w = W - 2 * MARGIN - GUTTER * (len(r) - 1)
-        # 漫画は右から読むので、横並びは右から順に置く
-        x = W - MARGIN
-        for i, ww in zip(r, ws):
-            cw = int(total_w * ww / sum(ws))
-            boxes[i] = (x - cw, y, x, y + rh)
-            x -= cw + GUTTER
+        boxes.append((MARGIN, y, W - MARGIN, y + rh))
         y += rh + GUTTER
     return boxes
+
+
+def paginate(panels: list) -> list[list]:
+    """コマを2コマずつのページに分ける（シーンをまたいでよい。1コマだけ余るページを作らない）。
+    "solo": true のコマは1コマで1ページ（見せ場）。"newPage": true のコマから新しいページにする。"""
+    pages, cur = [], []
+    for item in panels:
+        p = item[1] if isinstance(item, tuple) else item
+        if p.get("newPage") and cur:
+            pages.append(cur)
+            cur = []
+        if p.get("solo"):
+            if cur:
+                pages.append(cur)
+            pages.append([item])
+            cur = []
+            continue
+        cur.append(item)
+        if len(cur) == 2:
+            pages.append(cur)
+            cur = []
+    if cur:
+        pages.append(cur)
+    return pages
 
 
 # ---------- 吹き出し・擬音 ----------
@@ -251,26 +298,33 @@ def vertical_lines(text: str, per_col: int) -> list[str]:
     return cols
 
 
-def balloon(overlay: Image.Image, box, panel: dict, monologue: bool) -> None:
+def balloon_size(panel: dict, box) -> tuple[float, float]:
+    """吹き出しの半径（横・縦）。コマが低いときは1列の字数を減らして列を増やす。"""
+    text = panel.get("text")
+    if not text:
+        return 0, 0
+    size = panel.get("size", 52)
+    room = (box[3] - box[1]) - 2 * size * 0.85 - 20
+    per_col = min(panel.get("perCol", 9), max(4, int(room / (size * 1.02))))
+    cols = vertical_lines(text, per_col)
+    tw, th = int(size * 1.28) * len(cols), int(size * 1.02 * max(len(c) for c in cols))
+    return tw * 0.5 + size * 0.95, th * 0.5 + size * 0.85
+
+
+def balloon(overlay: Image.Image, box, panel: dict, monologue: bool, center, tgt) -> None:
     text = panel.get("text")
     if not text:
         return
     d = ImageDraw.Draw(overlay)
     size = panel.get("size", 52)
     f = vfont(size)
-    cols = vertical_lines(text, panel.get("perCol", 9))
+    room = (box[3] - box[1]) - 2 * size * 0.85 - 20
+    cols = vertical_lines(text, min(panel.get("perCol", 9), max(4, int(room / (size * 1.02)))))
     col_w = int(size * 1.28)
     longest = max(len(c) for c in cols)
     tw, th = col_w * len(cols), int(size * 1.02 * longest)
-    bx0, by0, bx1, by1 = box
-    ax, ay = panel.get("at", [0.8, 0.3])
-    cx, cy = bx0 + (bx1 - bx0) * ax, by0 + (by1 - by0) * ay
     rx, ry = tw * 0.5 + size * 0.95, th * 0.5 + size * 0.85
-    # はみ出しはページの内側に収める（コマの枠からは少しはみ出してよい）
-    cx = min(max(cx, MARGIN + rx - 10), W - MARGIN - rx + 10)
-    cy = min(max(cy, PAGE_TOP + ry + 4), PAGE_BOTTOM - ry + 30)
-    tx, ty = panel.get("to", [0.45, 0.5])
-    tgt = (bx0 + (bx1 - bx0) * tx, by0 + (by1 - by0) * ty)
+    cx, cy = center
     ang = math.atan2(tgt[1] - cy, tgt[0] - cx)
     if monologue:
         fill = (250, 250, 255, 255)
@@ -327,7 +381,8 @@ def balloon(overlay: Image.Image, box, panel: dict, monologue: bool) -> None:
         x -= col_w
 
 
-def sfx(overlay: Image.Image, box, panel: dict) -> None:
+def sfx(overlay: Image.Image, box, panel: dict, art=(0, 0, 1, 1), head=(0.5, 0.3)) -> None:
+    """擬音。キャラを置く範囲の中で、頭と反対側の上に置く（吹き出しと顔にかからない）。"""
     s = panel.get("sfx")
     if not s:
         return
@@ -336,7 +391,14 @@ def sfx(overlay: Image.Image, box, panel: dict) -> None:
     size = opts.get("size", 96)
     f = vfont(size)
     bx0, by0, bx1, by1 = box
-    ax, ay = opts.get("at", [0.14, 0.2])
+    if "pos" in opts:
+        ax, ay = opts["pos"]
+    else:
+        # キャラを置く範囲の端（左右×上中下）から、顔からいちばん遠い所を選ぶ
+        a0, ay0, a1, ay1 = art
+        bw, bh = bx1 - bx0, by1 - by0
+        spots = [(a0 + (a1 - a0) * fx, ay0 + (ay1 - ay0) * fy) for fx in (0.12, 0.88) for fy in (0.2, 0.5)]
+        ax, ay = max(spots, key=lambda q: math.hypot((q[0] - head[0]) * bw, (q[1] - head[1]) * bh * 0.8))
     layer = Image.new("RGBA", (size * 2, int(size * 1.15 * len(text)) + size), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     d.text((size // 2, size // 4), text.translate(ZEN), font=f, fill=tuple(opts.get("color", INK)), direction="ttb",
@@ -369,6 +431,29 @@ def resolve(panel: dict) -> tuple[dict, bool]:
     return panel, True
 
 
+def place_balloon(panel: dict, box) -> tuple[tuple[float, float, float, float], tuple[float, float] | None]:
+    """吹き出しの置き場所と、キャラを置く範囲（コマ内の 0〜1）を決める。
+    横長のコマは吹き出しを左、キャラを右に。縦長のコマは吹き出しを上、キャラを下に。顔に吹き出しがかからない。"""
+    if not panel.get("text") or panel["asset"] == "@screen":
+        if panel.get("text"):
+            rx, ry = balloon_size(panel, box)
+            return (0, 0, 1, 1), (box[0] + rx + 24, box[1] + ry + 24)
+        return (0, 0, 1, 1), None
+    x0, y0, x1, y1 = box
+    pw, ph = x1 - x0, y1 - y0
+    rx, ry = balloon_size(panel, box)
+    side = panel.get("side") or ("left" if pw >= ph * 0.9 else "top")
+    if side == "left":
+        used = min(0.5, (2 * rx + 24) / pw)
+        art = (used * 0.72, 0, 1, 1)
+        center = (x0 + rx + 22, y0 + max(ry + 22, min(ph * 0.45, ph - ry - 10)))
+    else:
+        used = min(0.45, (2 * ry + 24) / ph)
+        art = (0, used * 0.75, 1, 1)
+        center = (x0 + pw * 0.34, y0 + ry + 22)
+    return art, center
+
+
 def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None) -> list[Image.Image]:
     """Flow の動画をコマの大きさに切り抜いて、表示する秒数ぶんのコマにする。音は使わない。"""
     a, b = rng or (0.0, seconds)
@@ -383,22 +468,25 @@ def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None) -> 
 def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
     assets = {a["id"]: a for a in assets_list}
     pages, t = [], 0.0
+    items = []
     for scene in episode["scenes"]:
-        panels = scene.get("panels")
-        if not panels:
+        if not scene.get("panels"):
             sys.exit(f"シーン「{scene.get('line', '')[:12]}…」に panels がありません。")
-        page = Page(scene=scene, start=t)
-        boxes = layout(panels)
-        mono_scene = scene.get("type") == "monologue"
-        for j, (p, box) in enumerate(zip(panels, boxes)):
+        items += [(scene, p) for p in scene["panels"]]
+    for chunk in paginate(items):
+        page = Page(scene=chunk[0][0], start=t)
+        boxes = layout([p for _, p in chunk])
+        for j, ((scene, p), box) in enumerate(zip(chunk, boxes)):
+            mono_scene = scene.get("type") == "monologue"
             p, placeholder = resolve(p)
             if not p["asset"].startswith("@") and p["asset"] not in assets and not (ny.IMG_DIR / f"{p['asset']}.png").exists():
                 sys.exit(f"素材 {p['asset']} が assets/img か台帳にありません。")
             mono = p.get("monologue", mono_scene)
             size = (box[2] - box[0], box[3] - box[1])
             pl = Placed(p, box, t, float(p.get("seconds", 1.6)), monologue=mono,
-                        key=f"p{len(pages) + 1:02d}-{j + 1}", placeholder=placeholder)
-            pl.content = panel_content(p, size, assets, mono)
+                        key=f"p{len(pages) + 1:02d}-{j + 1}", placeholder=placeholder, scene=scene)
+            art, center = place_balloon(p, box)
+            pl.content, head = panel_content(p, size, assets, mono, art)
             clip = ny.CLIP_DIR / episode["id"] / f"{pl.key}.mp4"
             if p.get("flow") and clip.exists():
                 if p["flow"].get("approved"):
@@ -406,8 +494,10 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
                 else:
                     print(f"  {pl.key}: Flow の動画は未承認なので絵のまま（台本の flow に \"approved\": true で採用）")
             pl.overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-            sfx(pl.overlay, box, p)
-            balloon(pl.overlay, box, p, mono)
+            sfx(pl.overlay, box, p, art, head)
+            tgt = (box[0] + head[0] * size[0], box[1] + head[1] * size[1])
+            if center:
+                balloon(pl.overlay, box, p, mono, center, tgt)
             if placeholder:
                 d = ImageDraw.Draw(pl.overlay)
                 d.rounded_rectangle((box[0] + 14, box[3] - 62, box[0] + 150, box[3] - 14), radius=10, fill=(255, 236, 180, 235))
@@ -466,25 +556,55 @@ def draw_page(page: Page, t: float, base: Image.Image, final: bool = False) -> I
     return img
 
 
+def label_page(img: Image.Image, page: Page) -> Image.Image:
+    """コマ一覧用に、各コマへ番号・秒数・状態の札を付ける（動画には入らない）。"""
+    img = img.copy()
+    d = ImageDraw.Draw(img)
+    f = ny.font(32)
+    for pl in page.panels:
+        x0, y0, x1, y1 = pl.box
+        tags = [f"{pl.key}  {pl.seconds:.1f}秒"]
+        if pl.panel.get("flow"):
+            tags.append("Flow" + ("済" if pl.frames else "予定"))
+        if pl.panel.get("solo"):
+            tags.append("見せ場")
+        txt = "  ".join(tags)
+        tw = d.textlength(txt, font=f)
+        d.rounded_rectangle((x1 - tw - 44, y0 + 10, x1 - 10, y0 + 58), radius=12, fill=(20, 20, 20, 210))
+        d.text((x1 - 26, y0 + 34), txt, font=f, fill=(255, 255, 255), anchor="rm")
+    return img
+
+
 def sheet(episode_path: Path) -> Path:
     """各ページの完成形を並べたコマ一覧。北原さんの確認用。"""
     episode = ny.load_json(episode_path)
     characters = ny.load_json(ny.CHARACTERS)
     pages = build(episode, characters, ny.load_json(ny.LIBRARY)["assets"])
     base = header(episode, characters["channel"]["name"])
-    thumbs = [draw_page(p, 0, base, final=True).convert("RGB").resize((360, 640), Image.LANCZOS) for p in pages]
+    tw, th = 480, 853
+    thumbs = [label_page(draw_page(p, 0, base, final=True), p).convert("RGB").resize((tw, th), Image.LANCZOS) for p in pages]
     out = ny.OUT_DIR / episode["id"] / "manga" / "コマ一覧.jpg"
     out.parent.mkdir(parents=True, exist_ok=True)
-    cols = min(3, len(thumbs))
+    cols = min(4, len(thumbs))
     rows = -(-len(thumbs) // cols)
-    sh = Image.new("RGB", (cols * 380 + 20, rows * 700 + 20), (235, 235, 235))
+    gap, top, cap = 28, 150, 56
+    sh = Image.new("RGB", (cols * (tw + gap) + gap, top + rows * (th + cap + gap)), (232, 232, 232))
     d = ImageDraw.Draw(sh)
+    n = sum(len(p.panels) for p in pages)
+    secs = sum(p.seconds for p in pages)
+    stand = sum(pl.placeholder for p in pages for pl in p.panels)
+    flows = sum(bool(pl.panel.get("flow")) for p in pages for pl in p.panels)
+    d.text((gap, 24), f"{episode['id']} {episode['title']}　{len(pages)}ページ・{n}コマ・{secs:.1f}秒",
+           font=ny.font(34), fill=(20, 20, 20))
+    d.text((gap, 82), f"札: コマ番号と表示秒数／「代役」{stand}コマ＝Geminiの絵ができたら差し替え／「Flow予定」{flows}コマ＝前のコマから動かす",
+           font=ny.font(26), fill=(70, 70, 70))
     for i, (im, p) in enumerate(zip(thumbs, pages)):
-        x, y = 20 + (i % cols) * 380, 20 + (i // cols) * 700
+        x, y = gap + (i % cols) * (tw + gap), top + (i // cols) * (th + cap + gap)
         sh.paste(im, (x, y))
-        d.text((x, y + 648), f"ページ{i + 1}  {len(p.panels)}コマ  {p.seconds:.1f}秒", font=ny.font(24), fill=(30, 30, 30))
-    sh.save(out, quality=88)
-    print(f"コマ一覧: {out.relative_to(ny.ROOT)}（{sum(len(p.panels) for p in pages)}コマ、{sum(p.seconds for p in pages):.1f}秒）")
+        d.rectangle((x - 1, y - 1, x + tw, y + th), outline=(150, 150, 150), width=2)
+        d.text((x, y + th + 12), f"ページ{i + 1}　{len(p.panels)}コマ　{p.seconds:.1f}秒", font=ny.font(28), fill=(30, 30, 30))
+    sh.save(out, quality=90)
+    print(f"コマ一覧: {out.relative_to(ny.ROOT)}（{len(pages)}ページ、{n}コマ、{secs:.1f}秒）")
     return out
 
 
@@ -557,6 +677,8 @@ def prep(episode_path: Path) -> Path:
     out_dir = ny.OUT_DIR / episode["id"] / "manga"
     flow_dir = out_dir / "flow"
     flow_dir.mkdir(parents=True, exist_ok=True)
+    for old in flow_dir.glob("*.png"):  # コマ番号が変わったときに古いコマを残さない
+        old.unlink()
     name = lambda aid: assets.get(aid, {}).get("driveName", f"{aid}.png")  # noqa: E731
 
     needs = [(pl, pl.panel["need"]) for pg in pages for pl in pg.panels if pl.placeholder]
@@ -596,14 +718,14 @@ def prep(episode_path: Path) -> Path:
         if isinstance(crop, str):
             crop = "full"  # Flow には全身で渡す（顔だけだと動きを想像できない）
             end_img = source(pl.panel["asset"], assets)
-            bx = crop_box(end_img, crop, size[0] / size[1], assets.get(pl.panel["asset"], {}).get("framing", "full"))
+            bx = frame_region(end_img, crop, size[0] / size[1], assets.get(pl.panel["asset"], {}).get("framing", "full"))
             crop = [bx[0] / end_img.width, bx[1] / end_img.height, bx[2] / end_img.width, bx[3] / end_img.height]
         start = dict(pl.panel, asset=pl.panel["flow"]["from"], crop=pl.panel["flow"].get("fromCrop", crop), fx=[])
         end = dict(pl.panel, crop=crop, fx=[])
         for tag, panel in (("start", start), ("end", end)):
-            img = panel_content(panel, (size[0], size[1]), assets, False).resize(size, Image.LANCZOS)
+            img = panel_content(panel, (size[0], size[1]), assets, False)[0].resize(size, Image.LANCZOS)
             img.save(flow_dir / f"{pl.key}_{tag}.png")
-        ch = characters["characters"][pl.panel.get("speaker", pg.scene["speaker"])]
+        ch = characters["characters"][pl.panel.get("speaker", pl.scene["speaker"])]
         f += [f"## {pl.key}（{'横 16:9' if wide else '縦 9:16'}）→ 保存名 `{episode['id']}_{pl.key}.mp4`", "",
               f"- 最初のコマ: `flow/{pl.key}_start.png`（{start['asset']}）",
               f"- 最後のコマ: `flow/{pl.key}_end.png`（{pl.panel['asset']}）"

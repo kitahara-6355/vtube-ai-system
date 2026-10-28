@@ -72,13 +72,21 @@ def test_video_scene_seconds_speeds_up_then_extends():
     assert nyasan.video_scene_seconds(5.0, 4.0) == (5.0, 1.0)
 
 
-def test_manga_layout_right_to_left():
+def test_manga_layout_stacks_full_width():
     import manga
-    boxes = manga.layout([{"h": 1}, {"row": 1}, {"row": 1}])
-    assert len(boxes) == 3
-    # 横並びは右から読む: 2コマ目が右、3コマ目が左
-    assert boxes[1][0] > boxes[2][0]
-    assert boxes[0][1] < boxes[1][1]
+    boxes = manga.layout([{"h": 1}, {"h": 2}])
+    # コマは全幅で上から積む（横に細いコマを作らない）。高さは h の比
+    assert all(b[0] == manga.MARGIN and b[2] == manga.W - manga.MARGIN for b in boxes)
+    assert boxes[0][3] < boxes[1][1]
+    assert abs((boxes[1][3] - boxes[1][1]) - 2 * (boxes[0][3] - boxes[0][1])) <= 2
+
+
+def test_manga_paginate_two_per_page():
+    import manga
+    p = [{"id": i} for i in range(5)]
+    assert [len(x) for x in manga.paginate(p)] == [2, 2, 1]
+    p[2]["solo"] = True
+    assert [[q["id"] for q in x] for x in manga.paginate(p)] == [[0, 1], [2], [3, 4]]
 
 
 def test_manga_vertical_lines_keep_punctuation():
