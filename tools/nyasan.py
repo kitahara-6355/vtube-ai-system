@@ -296,8 +296,8 @@ def badge(img: Image.Image, text: str, row: int = 0) -> None:
     d.text((W - 180, top + 35), text, font=font(30), fill=(140, 90, 0), anchor="mm")
 
 
-def telop_layer(scene: dict, characters: dict, episode: dict, channel: str) -> Image.Image:
-    """字幕・名札・ヘッダー（動かさない層）。"""
+def telop_layer(scene: dict, characters: dict, episode: dict, channel: str, style: str = "box") -> Image.Image:
+    """字幕・名札・ヘッダー（動かさない層）。style="bubble" で漫画の吹き出しにする。"""
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw_header(img, episode, channel)
     d = ImageDraw.Draw(img)
@@ -311,6 +311,9 @@ def telop_layer(scene: dict, characters: dict, episode: dict, channel: str) -> I
     lines = wrap(text, f, 900)
     box_h = 90 + len(lines) * 92
     top = 1330
+    if style == "bubble":
+        draw_bubble(img, lines, f, color, monologue, ch["displayName"] + ("の心の声" if monologue else ""), top, box_h)
+        return img
     if monologue:
         d.rounded_rectangle((40, top, W - 40, top + box_h), radius=36, fill=(18, 22, 48, 225), outline=(150, 170, 255, 255), width=6)
         fill = (235, 240, 255)
@@ -326,6 +329,48 @@ def telop_layer(scene: dict, characters: dict, episode: dict, channel: str) -> I
     for i, ln in enumerate(lines):
         d.text((W // 2, top + 90 + i * 92), ln, font=f, fill=fill, anchor="mm")
     return img
+
+
+def draw_bubble(img: Image.Image, lines: list[str], f: ImageFont.FreeTypeFont, color: tuple, monologue: bool,
+                name: str, top: int, box_h: int) -> None:
+    """漫画の吹き出し。セリフは角丸＋キャラへ向くしっぽ、心の声はもこもこ＋小さな丸のしっぽ。"""
+    d = ImageDraw.Draw(img)
+    left, right, bottom = 60, W - 60, top + box_h
+    ink, paper = (40, 40, 40, 255), (255, 255, 255, 245)
+    if monologue:
+        paper = (238, 242, 255, 245)
+        # もこもこの縁: 枠の周りに円を並べてから中を塗る
+        r = 46
+        for x in range(left + r, right - r + 1, 70):
+            for y in (top + 8, bottom - 8):
+                d.ellipse((x - r - 4, y - r - 4, x + r + 4, y + r + 4), fill=ink)
+        for y in range(top + r, bottom - r + 1, 70):
+            for x in (left + 8, right - 8):
+                d.ellipse((x - r - 4, y - r - 4, x + r + 4, y + r + 4), fill=ink)
+        for x in range(left + r, right - r + 1, 70):
+            for y in (top + 8, bottom - 8):
+                d.ellipse((x - r, y - r, x + r, y + r), fill=paper)
+        for y in range(top + r, bottom - r + 1, 70):
+            for x in (left + 8, right - 8):
+                d.ellipse((x - r, y - r, x + r, y + r), fill=paper)
+        d.rectangle((left + 8, top + 8, right - 8, bottom - 8), fill=paper)
+        # 考えているときの小さな丸（キャラの頭の方へ）
+        for cx, cy, rr in ((W // 2 + 40, top - 70, 26), (W // 2 + 80, top - 140, 18), (W // 2 + 110, top - 195, 12)):
+            d.ellipse((cx - rr - 4, cy - rr - 4, cx + rr + 4, cy + rr + 4), fill=ink)
+            d.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), fill=paper)
+    else:
+        # しっぽ（上のキャラの口元へ向ける）
+        tail = [(W // 2 - 60, top + 10), (W // 2 + 60, top + 10), (W // 2 + 10, top - 110)]
+        d.polygon(tail, fill=ink)
+        d.rounded_rectangle((left, top, right, bottom), radius=60, fill=paper, outline=ink, width=8)
+        inner = [(W // 2 - 46, top + 14), (W // 2 + 46, top + 14), (W // 2 + 10, top - 94)]
+        d.polygon(inner, fill=paper)
+    tf = font(36)
+    tw = int(tf.getlength(name)) + 50
+    d.rounded_rectangle((left + 30, bottom - 26, left + 30 + tw, bottom + 34), radius=18, fill=color + (255,))
+    d.text((left + 55, bottom + 4), name, font=tf, fill=(255, 255, 255), anchor="lm")
+    for i, ln in enumerate(lines):
+        d.text((W // 2, top + 85 + i * 92), ln, font=f, fill=(30, 30, 30), anchor="mm")
 
 
 def end_card(episode: dict, channel: str) -> Image.Image:
@@ -587,7 +632,7 @@ def render(episode_path: Path) -> Path:
             base = tmp / f"s{i:02d}_base.png"
             over = tmp / f"s{i:02d}_over.png"
             character_layer(scene, pick, mono).save(base)
-            overlay = telop_layer(scene, characters, episode, channel)
+            overlay = telop_layer(scene, characters, episode, channel, characters["channel"].get("textStyle", "box"))
             moving = clip_path(episode, i)
             if moving.exists() and not scene.get("clipApproved"):
                 print(f"  シーン{i + 1}: 動きのクリップは未承認（review で確認して clipApproved: true を書く）")
