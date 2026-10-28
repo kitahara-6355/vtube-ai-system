@@ -22,7 +22,8 @@
       "type": "line",
       "expression": "panic",
       "line": "ダブルクリック？\n二回も押して壊れんか？",
-      "pose": "pc"
+      "pose": "pc",
+      "motion": "He grips the mouse and clicks it twice in a panic, flinches back in his chair, sweat drops fly, eyes darting between the mouse and the monitor."
     },
     {
       "speaker": "nyasan",
@@ -35,7 +36,12 @@
       "type": "line",
       "expression": "joy",
       "line": "…開いた！\n開いたぞ、にゃーさん！",
-      "pose": "guts"
+      "pose": "guts",
+      "motion": "He blinks in surprise, then breaks into a big smile and pumps his right fist up high in triumph.",
+      "startExpression": "default",
+      "startPose": null,
+      "endExpression": "joy",
+      "endPose": "guts"
     },
     {
       "speaker": "nyasan",

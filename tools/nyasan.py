@@ -2,6 +2,7 @@
 """にゃーさんショート自動生成ツール。
 
   python tools/nyasan.py check  episodes/EP001_mouse.json   # 素材の過不足を調べ、足りない画像の生成指示書を書く
+  python tools/nyasan.py storyboard episodes/EP001_mouse.json  # 動かすシーンの絵コンテ（最初と最後のコマ）と Flow 用の指示書を作る
   python tools/nyasan.py render episodes/EP001_mouse.json   # 縦型ショート(1080x1920)と投稿用テキストを作る
 
 外部APIは呼ばない。必要なのは Python3 + Pillow + numpy + ffmpeg だけ。
@@ -26,6 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LIBRARY = ROOT / "assets" / "library.json"
 CHARACTERS = ROOT / "characters" / "characters.json"
 IMG_DIR = ROOT / "assets" / "img"
+CLIP_DIR = ROOT / "assets" / "clips"
 OUT_DIR = ROOT / "out"
 
 W, H, FPS = 1080, 1920, 30
@@ -36,6 +38,10 @@ FONT_CANDIDATES = [
     "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc",
     "C:/Windows/Fonts/meiryob.ttc",
 ]
+
+# Flow（Veo 3.1 Fast、最初と最後のフレーム指定）の1クリップあたりの消費。2026-10 時点の公開情報。
+FLOW_CLIP_CREDITS = 20
+FLOW_CLIP_SEC = 8
 
 # 日本語の読み上げ・黙読の目安（文字/秒）。ショートは少し速めでよい。
 CHARS_PER_SEC = 7.5
@@ -357,6 +363,93 @@ def render_clip(base: Path, overlay: Path | None, seconds: float, out: Path, zoo
     run(cmd)
 
 
+def clip_path(episode: dict, index: int) -> Path:
+    return CLIP_DIR / episode["id"] / f"scene{index + 1:02d}.mp4"
+
+
+def probe_seconds(path: Path) -> float:
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+                       capture_output=True, text=True)
+    return float(r.stdout.strip() or 0)
+
+
+def video_scene_seconds(text_seconds: float, clip_seconds: float) -> tuple[float, float]:
+    """動きのクリップを入れるシーンの長さと再生速度。8秒の動きを最大2倍速まで縮め、足りなければシーンを延ばす。"""
+    seconds = max(text_seconds, clip_seconds / 2)
+    speed = max(1.0, clip_seconds / seconds)
+    return round(seconds, 2), round(speed, 3)
+
+
+def render_video_clip(video: Path, overlay: Path, text_seconds: float, out: Path) -> float:
+    """Flow で作った動きのクリップを土台にして字幕を重ねる。音は使わない（日本語のセリフは字幕で出す）。"""
+    seconds, speed = video_scene_seconds(text_seconds, probe_seconds(video))
+    vf = (
+        f"[0:v]setpts=PTS/{speed},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},"
+        f"tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds},setpts=PTS-STARTPTS[bg];"
+        f"[bg][1:v]overlay=0:0,fade=t=in:st=0:d=0.12[v]"
+    )
+    run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(video), "-loop", "1", "-framerate", str(FPS), "-i", str(overlay),
+         "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+         "-filter_complex", vf, "-map", "[v]", "-map", "2:a", "-t", f"{seconds}",
+         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "20", "-c:a", "aac", "-b:a", "128k", str(out)])
+    return seconds
+
+
+def storyboard(episode_path: Path) -> Path:
+    """motion を書いたシーンだけ、最初と最後のコマ（9:16、字幕なし）と Flow 用の指示書を作る。"""
+    episode = load_json(episode_path)
+    characters = load_json(CHARACTERS)
+    assets = load_json(LIBRARY)["assets"]
+    out_dir = OUT_DIR / episode["id"] / "storyboard"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    motion = [(i, s) for i, s in enumerate(episode["scenes"]) if s.get("motion")]
+    lines = [
+        f"# 絵コンテと動きの指示書 — {episode['id']} {episode['title']}",
+        "",
+        "動かすシーンだけ、Flow の「Frames to Video」で最初と最後のコマをつなぐ。それ以外のシーンは静止画＋ゆっくりズームのまま。",
+        "",
+        "## Flow の設定（全クリップ共通）",
+        "- モード: Frames to Video（最初のフレーム＋最後のフレーム）",
+        "- モデル: Veo 3.1 Fast / 縦 9:16 / 8秒",
+        "- 音声は使わない（書き出し時に消す）。セリフは字幕で出す",
+        f"- 保存先: リポジトリの `assets/clips/{episode['id']}/sceneNN.mp4`（共有ドライブにも同じ名前で保存）",
+        "",
+        f"枠の目安: {len(motion)} クリップ × {FLOW_CLIP_CREDITS} クレジット = {len(motion) * FLOW_CLIP_CREDITS} クレジット（やり直し1回ずつで {len(motion) * FLOW_CLIP_CREDITS * 2}）。"
+        "AI Pro は毎日50＋月1,000、Business Standard は毎日50。",
+        "",
+    ]
+    for i, scene in enumerate(episode["scenes"]):
+        if not scene.get("motion"):
+            continue
+        start = pick_asset(assets, scene["speaker"], scene.get("startExpression", scene.get("expression")), scene.get("startPose", scene.get("pose")))
+        end = None
+        if scene.get("endExpression") or scene.get("endPose"):
+            end = pick_asset(assets, scene["speaker"], scene.get("endExpression", scene.get("expression")), scene.get("endPose"))
+        for tag, pick in (("start", start), ("end", end)):
+            if pick and pick.asset and (IMG_DIR / f"{pick.asset['id']}.png").exists():
+                character_layer(scene, pick, False).save(out_dir / f"scene{i + 1:02d}_{tag}.png")
+        ch = characters["characters"][scene["speaker"]]
+        lines += [
+            f"## シーン{i + 1}（{ch['displayName']}）→ `scene{i + 1:02d}.mp4`",
+            "",
+            f"- 最初のコマ: `scene{i + 1:02d}_start.png`（{start.asset['id']}{'' if start.exact else ' ※代役'}）",
+            f"- 最後のコマ: " + (f"`scene{i + 1:02d}_end.png`（{end.asset['id']}{'' if end.exact else ' ※代役'}）" if end else "なし（最初のコマだけで動かす）"),
+            f"- セリフ（字幕で出す）: {scene['line'].replace(chr(10), ' ')}",
+            "",
+            "```",
+            f"2D anime chibi character, flat cel shading, thick black outlines. Keep the character design exactly as in the frames ({ch['visual'].replace('、白背景', '')}).",
+            f"Motion: {scene['motion']}",
+            "The whole motion finishes within about 4 seconds, then the character holds the final pose.",
+            "Camera fixed, no zoom, no cuts. Background stays exactly the same. No text, no subtitles, no new characters. Smooth, natural, light movement.",
+            "```",
+            "",
+        ]
+    md = out_dir / "絵コンテ指示書.md"
+    md.write_text("\n".join(lines), encoding="utf-8")
+    print(f"動かすシーン {len(motion)} 個 → {md.relative_to(ROOT)}")
+    return md
+
+
 def upload_text(episode: dict, channel: str, used_fallback: bool) -> str:
     up = episode.get("upload", {})
     tags = " ".join(up.get("hashtags", ["#Shorts", "#DX", "#中小企業"]))
@@ -402,7 +495,13 @@ def render(episode_path: Path) -> Path:
             character_layer(scene, pick, mono).save(base)
             telop_layer(scene, characters, episode, channel).save(over)
             clip = tmp / f"s{i:02d}.mp4"
-            render_clip(base, over, scene_seconds(scene), clip)
+            moving = clip_path(episode, i)
+            if moving.exists():
+                render_video_clip(moving, over, scene_seconds(scene), clip)
+            else:
+                if scene.get("motion"):
+                    print(f"  シーン{i + 1}: 動きのクリップ {moving.relative_to(ROOT)} がないので静止画で書き出します")
+                render_clip(base, over, scene_seconds(scene), clip)
             clips.append(clip)
             if i == 0:
                 # 1枚目をサムネ確認用に残す
@@ -417,19 +516,19 @@ def render(episode_path: Path) -> Path:
         video = out_dir / f"{episode['id']}_short.mp4"
         run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(video)])
     (out_dir / "投稿用テキスト.txt").write_text(upload_text(episode, channel, bool(missing)), encoding="utf-8")
-    dur = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(video)],
-                         capture_output=True, text=True).stdout.strip()
-    print(f"\n完成: {video.relative_to(ROOT)}  {float(dur):.1f}秒")
+    print(f"\n完成: {video.relative_to(ROOT)}  {probe_seconds(video):.1f}秒")
     return video
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["check", "render"])
+    ap.add_argument("command", choices=["check", "storyboard", "render"])
     ap.add_argument("episode", type=Path)
     a = ap.parse_args()
     if a.command == "check":
         check(a.episode)
+    elif a.command == "storyboard":
+        storyboard(a.episode)
     else:
         render(a.episode)
 

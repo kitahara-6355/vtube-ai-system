@@ -22,6 +22,8 @@ PCが苦手な二代目「よちよち社長」と、少しだけ先を行く事
 | ネタ・台本 | Claude Code（`skills/nyasan-script`） | Claude の定額 |
 | 素材選び・不足の洗い出し・生成プロンプト | `tools/nyasan.py check` | 0 |
 | 足りない画像の生成 | 人が Gemini アプリで（`skills/nyasan-image-request`） | AI Pro／Business Standard の定額枠 |
+| 見せ場の絵コンテ（最初と最後のコマ）と動きの指示 | `tools/nyasan.py storyboard` | 0 |
+| 見せ場の動き（コマの間をつなぐ） | 人が Flow の Frames to Video で（1本2クリップまで） | 1クリップ20クレジット（定額枠） |
 | 切り抜き・字幕・動き・書き出し | `tools/nyasan.py render`（Pillow＋ffmpeg） | 0 |
 | 投稿 | 人が YouTube Studio で予約 | 0 |
 
@@ -31,6 +33,7 @@ PCが苦手な二代目「よちよち社長」と、少しだけ先を行く事
 pip install -r requirements.txt   # ffmpeg は別途
 # 画像を assets/img/<素材ID>.png に置く（assets/library.json の driveId から取得）
 python tools/nyasan.py check  episodes/EP001_mouse.json
+python tools/nyasan.py storyboard episodes/EP001_mouse.json   # 動かすシーンがあるとき
 python tools/nyasan.py render episodes/EP001_mouse.json
 python -m pytest -q
 ```

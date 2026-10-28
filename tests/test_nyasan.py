@@ -61,3 +61,12 @@ def test_episode_files_are_valid():
         for s in ep["scenes"]:
             assert s["speaker"] in chars, path
             assert s.get("type", "line") in ("line", "monologue"), path
+
+
+def test_video_scene_seconds_speeds_up_then_extends():
+    # 3秒のセリフに8秒の動き → 4秒に延ばして2倍速
+    assert nyasan.video_scene_seconds(3.0, 8.0) == (4.0, 2.0)
+    # セリフが長ければ速度を落とす
+    assert nyasan.video_scene_seconds(6.0, 8.0) == (6.0, 1.333)
+    # クリップのほうが短いときは等速
+    assert nyasan.video_scene_seconds(5.0, 4.0) == (5.0, 1.0)
