@@ -3,6 +3,7 @@
 
   python tools/nyasan.py check  episodes/EP001_mouse.json   # 素材の過不足を調べ、足りない画像の生成指示書を書く
   python tools/nyasan.py storyboard episodes/EP001_mouse.json  # 動かすシーンの絵コンテ（最初と最後のコマ）と Flow 用の指示書を作る
+  python tools/nyasan.py review episodes/EP001_mouse.json     # Flow のクリップの確認シートを作る（採用は人が決めて clipApproved を書く）
   python tools/nyasan.py render episodes/EP001_mouse.json   # 縦型ショート(1080x1920)と投稿用テキストを作る
 
 外部APIは呼ばない。必要なのは Python3 + Pillow + numpy + ffmpeg だけ。
@@ -283,10 +284,16 @@ def character_layer(scene: dict, pick: Pick, monologue: bool) -> Image.Image:
     bgr.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(10)), (x, 1270))
     bgr.alpha_composite(cut, (x, y))
     if not pick.exact:
-        d = ImageDraw.Draw(bgr)
-        d.rounded_rectangle((W - 330, 250, W - 30, 320), radius=16, fill=(255, 240, 200, 230))
-        d.text((W - 180, 285), f"代役: {pick.want.split('/')[1]}", font=font(30), fill=(140, 90, 0), anchor="mm")
+        badge(bgr, f"代役: {pick.want.split('/')[1]}")
     return bgr.convert("RGB")
+
+
+def badge(img: Image.Image, text: str, row: int = 0) -> None:
+    """投稿してはいけない状態を右上の札で知らせる。"""
+    d = ImageDraw.Draw(img)
+    top = 250 + row * 90
+    d.rounded_rectangle((W - 330, top, W - 30, top + 70), radius=16, fill=(255, 240, 200, 230))
+    d.text((W - 180, top + 35), text, font=font(30), fill=(140, 90, 0), anchor="mm")
 
 
 def telop_layer(scene: dict, characters: dict, episode: dict, channel: str) -> Image.Image:
@@ -414,7 +421,7 @@ def storyboard(episode_path: Path) -> Path:
         "## Flow の設定（全クリップ共通）",
         "- モード: Frames to Video（最初のフレーム＋最後のフレーム）",
         "- モデル: Veo 3.1 Fast / 縦 9:16 / 8秒",
-        "- 音声は使わない（書き出し時に消す）。セリフは字幕で出す",
+        "- 音声なしで作る（Veo は音を付けることがあるので、書き出し時にも必ず消す）。セリフは字幕で出す",
         f"- 保存先: リポジトリの `assets/clips/{episode['id']}/sceneNN.mp4`（共有ドライブにも同じ名前で保存）",
         "",
         f"枠の目安: {len(motion)} クリップ × {FLOW_CLIP_CREDITS} クレジット = {len(motion) * FLOW_CLIP_CREDITS} クレジット（やり直し1回ずつで {len(motion) * FLOW_CLIP_CREDITS * 2}）。"
@@ -439,18 +446,102 @@ def storyboard(episode_path: Path) -> Path:
             f"- 最後のコマ: " + (f"`scene{i + 1:02d}_end.png`（{end.asset['id']}{'' if end.exact else ' ※代役'}）" if end else "なし（最初のコマだけで動かす）"),
             f"- セリフ（字幕で出す）: {scene['line'].replace(chr(10), ' ')}",
             "",
+            "Flow のエージェントに送る依頼文（画像を添付した順番が大事。最初のコマ→最後のコマの順に添付する）:",
+            "",
             "```",
+            (f"1枚目を最初のフレーム、2枚目を最後のフレームにして、Frames to Video で8秒・9:16・音声なしの動画を1本作って。"
+             if end else "添付画像を最初のフレームにして、8秒・9:16・音声なしの動画を1本作って。"),
+            "",
             f"2D anime chibi character, flat cel shading, thick black outlines. Keep the character design exactly as in the frames ({ch['visual'].replace('、白背景', '')}).",
             f"Motion: {scene['motion']}",
-            "The whole motion finishes within about 4 seconds, then the character holds the final pose.",
-            "Camera fixed, no zoom, no cuts. Background stays exactly the same. No text, no subtitles, no new characters. Smooth, natural, light movement.",
+            ("The video starts exactly on the first image and ends exactly on the second image. "
+             "Reach the pose of the second image by about 5 seconds and hold it still until the end. "
+             "Never return to the first pose." if end else
+             "The video starts exactly on the attached image. The motion finishes within about 5 seconds, "
+             "then the character holds the final pose until the end. Never return to the starting pose."),
+            "One continuous shot: fixed camera, no zoom, no cuts, the character stays the same size and position. "
+            "Background stays exactly the same. No text, no subtitles, no new characters. Smooth, natural, light movement.",
+            "Silent video: no voice, no music, no sound effects.",
             "```",
             "",
+            "生成後: `python tools/nyasan.py review` で確認シートを作り、人が見て採用を決める（下の「確認のしかた」）。",
+            "",
         ]
+    lines += [
+        "## 確認のしかた（採用は人が決める）",
+        "",
+        f"1. クリップを `assets/clips/{episode['id']}/sceneNN.mp4` に置き、`python tools/nyasan.py review episodes/<回>.json` を実行する。",
+        f"2. `out/{episode['id']}/review/sceneNN_確認シート.jpg`（指定したコマと、0.5秒ごとのコマ一覧）を見て、次を確かめる。",
+        "   - 絵柄（顔・服・タオル・主線）が指定したコマと同じ",
+        "   - 途中でカメラが切り替わったり、キャラの大きさが急に変わったりしない",
+        "   - 最後が「最後のコマ」の形で止まり、最初の絵に戻らない",
+        "3. 良ければ台本のシーンに `\"clipApproved\": true` を書く。一部だけ使うときは `\"clipRange\": [開始秒, 終了秒]` も書く。",
+        "   ダメなら作り直す（1シーン2回まで。それでもダメなら静止画のまま出す）。",
+        "",
+        "承認していないクリップを使った動画には右上に「未承認」の札が出る。札のある動画は投稿しない。",
+        "",
+    ]
     md = out_dir / "絵コンテ指示書.md"
     md.write_text("\n".join(lines), encoding="utf-8")
     print(f"動かすシーン {len(motion)} 個 → {md.relative_to(ROOT)}")
     return md
+
+
+def review(episode_path: Path) -> list[Path]:
+    """Flow のクリップを人が判断するための確認シート（指定したコマ＋0.5秒ごとのコマ一覧）を作る。"""
+    episode = load_json(episode_path)
+    sb_dir = OUT_DIR / episode["id"] / "storyboard"
+    out_dir = OUT_DIR / episode["id"] / "review"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    sheets = []
+    for i, scene in enumerate(episode["scenes"]):
+        video = clip_path(episode, i)
+        if not video.exists():
+            continue
+        dur = probe_seconds(video)
+        times = [round(t * 0.5, 1) for t in range(int(dur / 0.5))] + [round(dur - 0.05, 2)]
+        cw, chh = 216, 384
+        with tempfile.TemporaryDirectory() as tmp:
+            frames = []
+            for t in times:
+                f = Path(tmp) / f"{t}.png"
+                run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{t}", "-i", str(video), "-frames:v", "1",
+                     "-vf", f"scale={cw}:{chh}", str(f)])
+                frames.append((t, Image.open(f).convert("RGB")))
+        cols = 6
+        rows = -(-len(frames) // cols)
+        sheet = Image.new("RGB", (cols * (cw + 12) + 12, 520 + rows * (chh + 56) + 20), (245, 245, 245))
+        d = ImageDraw.Draw(sheet)
+        d.text((16, 16), f"{episode['id']} シーン{i + 1} 確認シート（{dur:.1f}秒）  使う区間: {scene.get('clipRange', '全部')}  "
+               f"承認: {'済' if scene.get('clipApproved') else 'まだ'}", font=font(26), fill=(30, 30, 30))
+        x = 16
+        for tag, label in (("start", "指定した最初のコマ"), ("end", "指定した最後のコマ")):
+            p = sb_dir / f"scene{i + 1:02d}_{tag}.png"
+            if p.exists():
+                im = Image.open(p).convert("RGB")
+                im.thumbnail((cw, chh))
+                d.text((x, 64), label, font=font(22), fill=(30, 30, 30))
+                sheet.paste(im, (x, 100))
+                x += cw + 24
+        d.text((x + 20, 100), "見るところ:\n・絵柄が指定のコマと同じ\n・途中でカメラが切り替わらない\n・キャラの大きさが急に変わらない\n・最後のコマで止まり、最初に戻らない",
+               font=font(24), fill=(60, 60, 60), spacing=10)
+        y0 = 520
+        rng = scene.get("clipRange")
+        for k, (t, im) in enumerate(frames):
+            cx = 12 + (k % cols) * (cw + 12)
+            cy = y0 + (k // cols) * (chh + 56)
+            sheet.paste(im, (cx, cy))
+            out = rng and not (rng[0] <= t <= rng[1])
+            if out:
+                d.rectangle((cx, cy, cx + cw, cy + chh), outline=(200, 40, 40), width=5)
+            d.text((cx + 4, cy + chh + 8), f"{t:.1f}秒{'（切る）' if out else ''}", font=font(24), fill=(200, 40, 40) if out else (30, 30, 30))
+        path = out_dir / f"scene{i + 1:02d}_確認シート.jpg"
+        sheet.save(path, quality=88)
+        sheets.append(path)
+        print(f"シーン{i + 1}: {path.relative_to(ROOT)}")
+    if not sheets:
+        print(f"クリップがありません（assets/clips/{episode['id']}/sceneNN.mp4）")
+    return sheets
 
 
 def upload_text(episode: dict, channel: str, used_fallback: bool) -> str:
@@ -496,9 +587,13 @@ def render(episode_path: Path) -> Path:
             base = tmp / f"s{i:02d}_base.png"
             over = tmp / f"s{i:02d}_over.png"
             character_layer(scene, pick, mono).save(base)
-            telop_layer(scene, characters, episode, channel).save(over)
-            clip = tmp / f"s{i:02d}.mp4"
+            overlay = telop_layer(scene, characters, episode, channel)
             moving = clip_path(episode, i)
+            if moving.exists() and not scene.get("clipApproved"):
+                print(f"  シーン{i + 1}: 動きのクリップは未承認（review で確認して clipApproved: true を書く）")
+                badge(overlay, "未承認: 動き", row=1)
+            overlay.save(over)
+            clip = tmp / f"s{i:02d}.mp4"
             if moving.exists():
                 render_video_clip(moving, over, scene_seconds(scene), clip, scene.get("clipRange"))
             else:
@@ -525,13 +620,15 @@ def render(episode_path: Path) -> Path:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["check", "storyboard", "render"])
+    ap.add_argument("command", choices=["check", "storyboard", "review", "render"])
     ap.add_argument("episode", type=Path)
     a = ap.parse_args()
     if a.command == "check":
         check(a.episode)
     elif a.command == "storyboard":
         storyboard(a.episode)
+    elif a.command == "review":
+        review(a.episode)
     else:
         render(a.episode)
 

@@ -28,13 +28,14 @@ description: 「DX事務所のにゃーさん」のYouTubeショートを1本作
    python tools/nyasan.py storyboard episodes/EPxxx_<slug>.json
    ```
    `out/EPxxx/storyboard/` に最初と最後のコマ（9:16、字幕なし）と `絵コンテ指示書.md` ができる。Flow の「Frames to Video」（Veo 3.1 Fast、9:16、8秒）にコマを入れて生成し（人の作業）、`assets/clips/EPxxx/sceneNN.mp4` に置く。1本あたり2クリップ＝40クレジットが上限の目安（Business Standard の毎日50に収まる）。クリップがないシーンは静止画で書き出されるので、生成が間に合わなくても投稿は止まらない。
-   生成されたクリップは数コマ取り出して確かめる。最後に元の絵へ戻る・途中で絵柄が崩れるなどがあれば、使う区間を台本の `clipRange`（例 `[0, 6.4]`、秒）で切る。動きが速すぎるときは `seconds` でシーンを延ばす（最大2倍速まで縮める仕組み）。
+   Flow には指示書の「依頼文」をそのまま送る（最初のコマ→最後のコマの順に添付、音声なし）。
+   生成後は `python tools/nyasan.py review episodes/EPxxx_<slug>.json` で `out/EPxxx/review/sceneNN_確認シート.jpg` を作り、**人が見て採用を決める**。良ければ台本のシーンに `"clipApproved": true`、一部だけ使うなら `"clipRange": [開始秒, 終了秒]` を書く。作り直しは1シーン2回まで、ダメなら静止画のまま出す。動きが速すぎるときは `seconds` でシーンを延ばす（最大2倍速まで縮める仕組み）。
 6. **書き出す** —
    ```
    python tools/nyasan.py render episodes/EPxxx_<slug>.json
    ```
    `out/EPxxx/` に `EPxxx_short.mp4`、`preview_first.jpg`、`投稿用テキスト.txt` ができる。
-7. **確認する** — `preview_first.jpg` と動画を見る。字幕の折り返しが変なら台本の `line` に `\n` を入れて直し、6 をやり直す。右上に「代役」の札が出ている動画は投稿しない。
+7. **確認する** — `preview_first.jpg` と動画を見る。字幕の折り返しが変なら台本の `line` に `\n` を入れて直し、6 をやり直す。右上に「代役」「未承認」の札が出ている動画は投稿しない。
 8. **投稿する（人の作業）** — YouTube Studio に弊社 Business Standard アカウントでログインし、`投稿用テキスト.txt` を見ながら予約投稿する。X は手動投稿（X API は使わない方針）。
 9. **記録する** — 投稿日と URL を `episodes/EPxxx_<slug>.json` の `published` に書く。
 
