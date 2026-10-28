@@ -33,7 +33,7 @@ description: 「DX事務所のにゃーさん」のYouTubeショートを1本作
    python tools/nyasan.py render episodes/EPxxx_<slug>.json
    ```
    `out/EPxxx/` に `EPxxx_short.mp4`、`preview_first.jpg`、`投稿用テキスト.txt` ができる。
-7. **確認する** — `preview_first.jpg` と動画を見る。字幕の折り返しが変なら台本の `line` に `\n` を入れて直し、5 をやり直す。右上に「代役」の札が出ている動画は投稿しない。
+7. **確認する** — `preview_first.jpg` と動画を見る。字幕の折り返しが変なら台本の `line` に `\n` を入れて直し、6 をやり直す。右上に「代役」の札が出ている動画は投稿しない。
 8. **投稿する（人の作業）** — YouTube Studio に弊社 Business Standard アカウントでログインし、`投稿用テキスト.txt` を見ながら予約投稿する。X は手動投稿（X API は使わない方針）。
 9. **記録する** — 投稿日と URL を `episodes/EPxxx_<slug>.json` の `published` に書く。
 
