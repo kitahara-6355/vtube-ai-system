@@ -38,8 +38,8 @@ description: 「DX事務所のにゃーさん」のショート台本を episode
 - `speaker`: `shacho` / `nyasan`
 - `type`: `line`（セリフ）/ `monologue`（心の声。背景が暗くなる）
 - `expression` と `pose` は `assets/library.json` にある値を優先して使う。ない値を書くと「代役」になり、生成指示書が出る。
-  - にゃーさんの表情: default, joy, worry, troubled, cheer, shy ／ ポーズ: point, bow, docs, tea, pc, explain, nod, wave, greet
-  - 社長: 今は default だけ（表情集を作るまでは代役が出る）
+  - にゃーさんの表情: default, joy, worry, troubled, cheer, anxious, exasperated（呆れ。心の声のツッコミ向き）, giggle ／ ポーズ: point, bow, docs, tea, pc, explain, nod, wave, greet, greet_bow, stand, help_pc（社長のPC操作を横で支える2人の絵）
+  - 社長の表情: default, panic, troubled, thinking, embarrassed, proud, confident, joy, serious ／ ポーズ: pc（panic=マウスを握って焦る、troubled=Excelの前で混乱）, stamp（ハンコ）, guts（ガッツポーズ）, point, arms_crossed
 - `direction`: 新しい画像が要るシーンだけ書く。生成指示書の「状況」に入る。
 - 字幕の折り返しを指定したいときは `line` に `\n` を入れる。
 

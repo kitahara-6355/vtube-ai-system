@@ -23,10 +23,10 @@ def test_pose_match():
 
 
 def test_missing_expression_falls_back_to_same_character():
-    p = nyasan.pick_asset(ASSETS, "shacho", "panic", None)
+    p = nyasan.pick_asset(ASSETS, "shacho", "sleepy", None)
     assert not p.exact
     assert p.asset["character"] == "shacho"
-    assert p.want == "shacho/panic"
+    assert p.want == "shacho/sleepy"
 
 
 def test_scene_seconds():
