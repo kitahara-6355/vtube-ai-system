@@ -70,3 +70,19 @@ def test_video_scene_seconds_speeds_up_then_extends():
     assert nyasan.video_scene_seconds(6.0, 8.0) == (6.0, 1.333)
     # クリップのほうが短いときは等速
     assert nyasan.video_scene_seconds(5.0, 4.0) == (5.0, 1.0)
+
+
+def test_manga_layout_right_to_left():
+    import manga
+    boxes = manga.layout([{"h": 1}, {"row": 1}, {"row": 1}])
+    assert len(boxes) == 3
+    # 横並びは右から読む: 2コマ目が右、3コマ目が左
+    assert boxes[1][0] > boxes[2][0]
+    assert boxes[0][1] < boxes[1][1]
+
+
+def test_manga_vertical_lines_keep_punctuation():
+    import manga
+    cols = manga.vertical_lines("大丈夫です。カチカチッて", 5)
+    assert all(not c.startswith(("。", "ッ")) for c in cols)
+    assert "".join(cols) == "大丈夫です。カチカチッて"

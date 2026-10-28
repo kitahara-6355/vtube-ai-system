@@ -177,7 +177,7 @@ def font(size: int) -> ImageFont.FreeTypeFont:
     sys.exit("日本語フォントが見つかりません。FONT_CANDIDATES に追加してください。")
 
 
-def cutout_white(img: Image.Image, threshold: int = 238) -> Image.Image:
+def cutout_white(img: Image.Image, threshold: int = 238, crop: bool = True) -> Image.Image:
     """白背景を外周から塗りつぶして透過にする。主線で囲まれた白（目のハイライト等）は残る。"""
     rgb = img.convert("RGB")
     arr = np.asarray(rgb).astype(np.int16)
@@ -196,7 +196,7 @@ def cutout_white(img: Image.Image, threshold: int = 238) -> Image.Image:
     out = rgb.convert("RGBA")
     out.putalpha(alpha_img)
     bbox = alpha_img.point(lambda v: 255 if v > 20 else 0).getbbox()
-    return out.crop(bbox) if bbox else out
+    return out.crop(bbox) if bbox and crop else out
 
 
 def background(monologue: bool) -> Image.Image:
