@@ -41,7 +41,9 @@
       "startExpression": "default",
       "startPose": null,
       "endExpression": "joy",
-      "endPose": "guts"
+      "endPose": "guts",
+      "seconds": 4.5,
+      "clipRange": [0, 6.4]
     },
     {
       "speaker": "nyasan",

@@ -380,15 +380,18 @@ def video_scene_seconds(text_seconds: float, clip_seconds: float) -> tuple[float
     return round(seconds, 2), round(speed, 3)
 
 
-def render_video_clip(video: Path, overlay: Path, text_seconds: float, out: Path) -> float:
-    """Flow で作った動きのクリップを土台にして字幕を重ねる。音は使わない（日本語のセリフは字幕で出す）。"""
-    seconds, speed = video_scene_seconds(text_seconds, probe_seconds(video))
+def render_video_clip(video: Path, overlay: Path, text_seconds: float, out: Path,
+                      clip_range: list[float] | None = None) -> float:
+    """Flow で作った動きのクリップを土台にして字幕を重ねる。音は使わない（日本語のセリフは字幕で出す）。
+    clip_range=[開始秒, 終了秒] で使う区間だけ切り出す（最後に元の絵へ戻るなど、崩れた部分を捨てる）。"""
+    start, end = clip_range or (0.0, probe_seconds(video))
+    seconds, speed = video_scene_seconds(text_seconds, end - start)
     vf = (
         f"[0:v]setpts=PTS/{speed},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},"
         f"tpad=stop_mode=clone:stop_duration={seconds},trim=duration={seconds},setpts=PTS-STARTPTS[bg];"
         f"[bg][1:v]overlay=0:0,fade=t=in:st=0:d=0.12[v]"
     )
-    run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(video), "-loop", "1", "-framerate", str(FPS), "-i", str(overlay),
+    run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{start}", "-to", f"{end}", "-i", str(video), "-loop", "1", "-framerate", str(FPS), "-i", str(overlay),
          "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
          "-filter_complex", vf, "-map", "[v]", "-map", "2:a", "-t", f"{seconds}",
          "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "20", "-c:a", "aac", "-b:a", "128k", str(out)])
@@ -497,7 +500,7 @@ def render(episode_path: Path) -> Path:
             clip = tmp / f"s{i:02d}.mp4"
             moving = clip_path(episode, i)
             if moving.exists():
-                render_video_clip(moving, over, scene_seconds(scene), clip)
+                render_video_clip(moving, over, scene_seconds(scene), clip, scene.get("clipRange"))
             else:
                 if scene.get("motion"):
                     print(f"  シーン{i + 1}: 動きのクリップ {moving.relative_to(ROOT)} がないので静止画で書き出します")
