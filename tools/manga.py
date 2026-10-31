@@ -26,6 +26,9 @@ import nyasan as ny  # noqa: E402
 
 W, H, FPS = ny.W, ny.H, ny.FPS
 PAGE_TOP, PAGE_BOTTOM, MARGIN, GUTTER = 250, 1690, 36, 22
+# 語り方の型（台本に "style": "monologue"、芯 §5）: ショートの下のUI（下から480〜672px）に文字がかからないよう、
+# コマは y=1280 までにする。心の声は吹き出しにせず、コマの最下に（ ）付きの小さな字幕で出す。
+MONO_BOTTOM, SAFE_RIGHT, SUB_ROOM = 1280, 900, 120
 FADE, TURN = 0.18, 0.35          # コマが現れる秒数、ページをめくる秒数
 ZOOM = 0.035                     # 表示中のコマをゆっくり寄せる量
 INK, PAPER = (20, 20, 20), (255, 255, 255)
@@ -245,10 +248,10 @@ class Page:
     seconds: float = 0.0
 
 
-def layout(panels: list[dict]) -> list[tuple[int, int, int, int]]:
+def layout(panels: list[dict], bottom: int = PAGE_BOTTOM) -> list[tuple[int, int, int, int]]:
     """ページ内のコマを上から縦に積む（1ページ2コマまで。横に細いコマは作らない）。高さは "h"（比）で決める。"""
     weights = [p.get("h", 1.0) for p in panels]
-    total_h = PAGE_BOTTOM - PAGE_TOP - GUTTER * (len(panels) - 1)
+    total_h = bottom - PAGE_TOP - GUTTER * (len(panels) - 1)
     boxes, y = [], PAGE_TOP
     for wgt in weights:
         rh = int(total_h * wgt / sum(weights))
@@ -431,6 +434,33 @@ def resolve(panel: dict) -> tuple[dict, bool]:
     return panel, True
 
 
+def subtitle(overlay: Image.Image, box, text: str, color: tuple) -> None:
+    """心の声の字幕。コマの最下に、横書きの小さな（ ）で出す。右のボタン列（x>SAFE_RIGHT）にはかけない。"""
+    d = ImageDraw.Draw(overlay)
+    f = ny.font(40)
+    x0, x1 = box[0] + 40, min(box[2] - 40, SAFE_RIGHT)
+    lines = ny.wrap("（" + text + "）", f, x1 - x0 - 48)[:3]
+    lh = 54
+    bh = lh * len(lines) + 28
+    by1 = box[3] - 18
+    by0 = by1 - bh
+    bw = max(f.getlength(s) for s in lines) + 48
+    cx = (x0 + x1) / 2
+    d.rounded_rectangle((cx - bw / 2, by0, cx + bw / 2, by1), radius=18, fill=(255, 255, 255, 228), outline=color + (255,), width=3)
+    for i, s in enumerate(lines):
+        d.text((cx, by0 + 14 + lh * i + lh / 2), s, font=f, fill=(30, 30, 40), anchor="mm")
+
+
+def caption(overlay: Image.Image, box, text: str) -> None:
+    """状況キャプション（「月曜、9時。」など）。場面が変わるコマの左上に小さく出す。"""
+    d = ImageDraw.Draw(overlay)
+    f = ny.font(38)
+    x, y = box[0] + 22, box[1] + 22
+    w = f.getlength(text) + 36
+    d.rectangle((x, y, x + w, y + 60), fill=(20, 20, 20, 225))
+    d.text((x + 18, y + 30), text, font=f, fill=(255, 255, 255), anchor="lm")
+
+
 def place_balloon(panel: dict, box) -> tuple[tuple[float, float, float, float], tuple[float, float] | None]:
     """吹き出しの置き場所と、キャラを置く範囲（コマ内の 0〜1）を決める。
     横長のコマは吹き出しを左、キャラを右に。縦長のコマは吹き出しを上、キャラを下に。顔に吹き出しがかからない。"""
@@ -467,6 +497,7 @@ def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None) -> 
 
 def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
     assets = {a["id"]: a for a in assets_list}
+    mono_style = episode.get("style") == "monologue"
     pages, t = [], 0.0
     items = []
     for scene in episode["scenes"]:
@@ -475,7 +506,7 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
         items += [(scene, p) for p in scene["panels"]]
     for chunk in paginate(items):
         page = Page(scene=chunk[0][0], start=t)
-        boxes = layout([p for _, p in chunk])
+        boxes = layout([p for _, p in chunk], MONO_BOTTOM if mono_style else PAGE_BOTTOM)
         for j, ((scene, p), box) in enumerate(zip(chunk, boxes)):
             mono_scene = scene.get("type") == "monologue"
             p, placeholder = resolve(p)
@@ -485,7 +516,9 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
             size = (box[2] - box[0], box[3] - box[1])
             pl = Placed(p, box, t, float(p.get("seconds", 1.6)), monologue=mono,
                         key=f"p{len(pages) + 1:02d}-{j + 1}", placeholder=placeholder, scene=scene)
-            art, center = place_balloon(p, box)
+            as_subtitle = mono_style and mono and p.get("text")
+            # 字幕の分だけキャラを上に寄せ、顔に字幕がかからないようにする
+            art, center = ((0, 0, 1, 1 - SUB_ROOM / size[1]), None) if as_subtitle else place_balloon(p, box)
             pl.content, head = panel_content(p, size, assets, mono, art)
             clip = ny.CLIP_DIR / episode["id"] / f"{pl.key}.mp4"
             if p.get("flow") and clip.exists():
@@ -498,6 +531,11 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
             tgt = (box[0] + head[0] * size[0], box[1] + head[1] * size[1])
             if center:
                 balloon(pl.overlay, box, p, mono, center, tgt)
+            if as_subtitle:
+                who = characters["characters"][p.get("speaker", scene["speaker"])]
+                subtitle(pl.overlay, box, p["text"], ny.hex_rgb(who["telopColor"]))
+            if p.get("caption"):
+                caption(pl.overlay, box, p["caption"])
             if placeholder:
                 d = ImageDraw.Draw(pl.overlay)
                 d.rounded_rectangle((box[0] + 14, box[3] - 62, box[0] + 150, box[3] - 14), radius=10, fill=(255, 236, 180, 235))
@@ -512,6 +550,10 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
 def header(episode: dict, channel: str) -> Image.Image:
     img = Image.new("RGBA", (W, H), PAPER + (255,))
     ny.draw_header(img, episode, channel)
+    if episode.get("style") == "monologue":
+        # コマより下はショートのUIがかかる場所。上の帯と同じ色でしめる
+        top = img.getpixel((W // 2, 4))
+        ImageDraw.Draw(img).rectangle((0, MONO_BOTTOM + 30, W, H), fill=top)
     return img
 
 

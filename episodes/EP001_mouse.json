@@ -3,86 +3,22 @@
   "title": "社長、マウスと出会う",
   "story": "STORY-001 マウスとの戦い（クリエイティブ資産 v3.2）",
   "funnelStage": 1,
+  "style": "monologue",
   "appeal": {
     "shacho": "現場ではプロなのに、PCの前だと赤ちゃん",
     "nyasan": "表はやさしいのに、心の声は辛口。そのギャップがいい"
   },
   "setup": {
     "thread": "estimate-past",
-    "how": "冒頭の「見積もりは手書きが一番だ」。理由は説明しない。"
+    "how": "社長の心の声「見積もりは、手書きが一番なんだが…」と、ハンコを押す画。理由は説明しない。"
   },
   "scenes": [
     {
       "speaker": "shacho",
       "type": "line",
-      "expression": "joy",
-      "line": "見積もりは手書きが一番だ。…だが今日は、PCで作るぞ！",
-      "pose": "stamp",
-      "panels": [
-        {
-          "asset": "SH_POSE_STAMP",
-          "crop": "full",
-          "h": 1.2,
-          "seconds": 2.0,
-          "text": "見積もりは\n手書きが一番だ。",
-          "at": [
-            0.2,
-            0.32
-          ],
-          "to": [
-            0.42,
-            0.3
-          ],
-          "sfx": {
-            "text": "ポンッ",
-            "at": [
-              0.86,
-              0.62
-            ],
-            "size": 88
-          }
-        },
-        {
-          "asset": "SH_EXP_CONFIDENT",
-          "crop": "face",
-          "row": 1,
-          "seconds": 1.4,
-          "text": "…だが今日は、",
-          "at": [
-            0.22,
-            0.3
-          ],
-          "to": [
-            0.45,
-            0.5
-          ]
-        },
-        {
-          "asset": "SH_POSE_POINT",
-          "crop": "bust",
-          "row": 1,
-          "fx": [
-            "lines",
-            "shout"
-          ],
-          "seconds": 1.8,
-          "text": "ＰＣで\n作るぞ！",
-          "at": [
-            0.78,
-            0.27
-          ],
-          "to": [
-            0.55,
-            0.45
-          ]
-        }
-      ]
-    },
-    {
-      "speaker": "nyasan",
-      "type": "monologue",
-      "expression": "exasperated",
-      "line": "社長、マウスを両手で包んでる…。石鹸じゃないです…",
+      "expression": "panic",
+      "pose": "pc",
+      "line": "（画のみ）マウスを両手で包む社長",
       "panels": [
         {
           "asset": "SH_POSE_PC_PANIC",
@@ -92,19 +28,19 @@
             0.64,
             0.96
           ],
-          "monologue": false,
-          "h": 0.8,
+          "h": 1.2,
           "fx": [
             "lines"
           ],
-          "seconds": 1.3,
+          "seconds": 2.2,
+          "caption": "月曜、朝9時。",
           "sfx": {
             "text": "ぎゅっ",
             "at": [
               0.85,
-              0.2
+              0.25
             ],
-            "size": 84
+            "size": 88
           },
           "need": {
             "id": "SH_POSE_MOUSE_SOAP",
@@ -115,39 +51,57 @@
             "crop": "bust",
             "desc": "椅子に座った社長が、パソコンのマウスを石鹸のように両手で包み込み、大事そうに胸の前で持っている。困り眉で真剣な顔。上半身中心。机とモニターは描かない。"
           }
-        },
+        }
+      ]
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "expression": "exasperated",
+      "line": "社長、マウスを両手で包んでる…石鹸じゃないです…",
+      "panels": [
         {
           "asset": "NY_POSE_EXASPERATED",
           "crop": "face",
-          "row": 1,
-          "h": 1.3,
-          "seconds": 2.4,
-          "text": "社長、マウスを\n両手で包んでる…",
-          "at": [
-            0.5,
-            0.25
+          "h": 0.8,
+          "seconds": 3.0,
+          "text": "社長、マウスを両手で包んでる…\n石鹸じゃないです…"
+        }
+      ]
+    },
+    {
+      "speaker": "shacho",
+      "type": "monologue",
+      "expression": "joy",
+      "pose": "stamp",
+      "line": "見積もりは、手書きが一番なんだが…今日こそ、PCで作る",
+      "panels": [
+        {
+          "asset": "SH_POSE_STAMP",
+          "crop": "full",
+          "fx": [
+            "light"
           ],
-          "to": [
-            0.5,
-            0.6
-          ],
-          "perCol": 8
+          "seconds": 2.6,
+          "text": "見積もりは、\n手書きが一番なんだが…",
+          "sfx": {
+            "text": "ポンッ",
+            "at": [
+              0.86,
+              0.3
+            ],
+            "size": 84
+          }
         },
         {
-          "asset": "NY_EXP_TROUBLED",
-          "crop": "face",
-          "row": 1,
-          "h": 1.3,
-          "seconds": 1.8,
-          "text": "石鹸じゃ\nないです…",
-          "at": [
-            0.5,
-            0.25
+          "asset": "SH_POSE_POINT",
+          "crop": "bust",
+          "fx": [
+            "lines",
+            "light"
           ],
-          "to": [
-            0.5,
-            0.6
-          ]
+          "seconds": 2.2,
+          "text": "今日こそ、PCで作る。"
         }
       ]
     },
@@ -155,15 +109,14 @@
       "speaker": "shacho",
       "type": "line",
       "expression": "panic",
-      "line": "ダブルクリック？\n二回も押して壊れんか？",
       "pose": "pc",
-      "motion": "He grips the mouse and clicks it twice in a panic, flinches back in his chair, sweat drops fly, eyes darting between the mouse and the monitor.",
+      "line": "ダブル…クリック？",
       "panels": [
         {
           "asset": "SH_POSE_PC_PANIC",
           "crop": "bust",
-          "seconds": 1.7,
-          "text": "ダブル\nクリック？",
+          "seconds": 1.8,
+          "text": "ダブル…\nクリック？",
           "at": [
             0.18,
             0.3
@@ -172,26 +125,25 @@
             0.5,
             0.35
           ]
-        },
+        }
+      ]
+    },
+    {
+      "speaker": "shacho",
+      "type": "monologue",
+      "expression": "panic",
+      "line": "二回も押したら、壊れんか…",
+      "panels": [
         {
           "asset": "SH_EXP_PANIC",
           "crop": "face",
           "h": 1.1,
           "fx": [
             "lines",
-            "shake",
-            "shout"
+            "shake"
           ],
-          "seconds": 2.2,
-          "text": "二回も押して\n壊れんか？",
-          "at": [
-            0.2,
-            0.3
-          ],
-          "to": [
-            0.45,
-            0.5
-          ],
+          "seconds": 2.4,
+          "text": "二回も押したら、壊れんか…",
           "flow": {
             "from": "SH_EXP_TROUBLED",
             "motion": "His worried face suddenly turns into panic: eyes go wide, mouth opens wide, a sweat drop pops out."
@@ -201,44 +153,30 @@
     },
     {
       "speaker": "nyasan",
-      "type": "line",
+      "type": "monologue",
+      "expression": "cheer",
       "pose": "point",
-      "line": "大丈夫です。カチカチッて、少しだけ速く2回です",
+      "line": "力みすぎです、社長…少しだけ速く、2回。それだけです",
       "panels": [
-        {
-          "asset": "NY_POSE_POINT",
-          "crop": "bust",
-          "h": 0.9,
-          "seconds": 1.4,
-          "text": "大丈夫です。",
-          "at": [
-            0.2,
-            0.32
-          ],
-          "to": [
-            0.45,
-            0.4
-          ]
-        },
         {
           "asset": "NY_EXP_CHEER",
           "crop": "face",
-          "h": 1.1,
+          "seconds": 2.0,
+          "text": "力みすぎです、社長…"
+        },
+        {
+          "asset": "NY_POSE_POINT",
+          "crop": "bust",
+          "fx": [
+            "light"
+          ],
           "seconds": 2.6,
-          "text": "カチカチッて、\n少しだけ速く\n２回です",
-          "at": [
-            0.2,
-            0.32
-          ],
-          "to": [
-            0.45,
-            0.5
-          ],
+          "text": "少しだけ速く、２回。それだけです。",
           "sfx": {
             "text": "カチカチッ",
             "at": [
               0.86,
-              0.6
+              0.3
             ],
             "size": 80
           }
@@ -249,24 +187,14 @@
       "speaker": "shacho",
       "type": "line",
       "expression": "joy",
-      "line": "…開いた！\n開いたぞ、にゃーさん！",
       "pose": "guts",
-      "motion": "He blinks in surprise, then breaks into a big smile and pumps his right fist up high in triumph.",
-      "startExpression": "default",
-      "startPose": null,
-      "endExpression": "joy",
-      "endPose": "guts",
-      "seconds": 4.5,
-      "clipRange": [
-        0,
-        6.4
-      ],
+      "line": "開いたぞ、にゃーさん！",
       "panels": [
         {
           "asset": "SH_POSE_PC_CONFUSED",
           "crop": "full",
-          "h": 0.7,
-          "seconds": 1.1,
+          "h": 0.8,
+          "seconds": 1.2,
           "sfx": {
             "text": "カチカチッ",
             "at": [
@@ -277,37 +205,13 @@
           }
         },
         {
-          "asset": "SH_EXP_EMBARRASSED",
-          "crop": "bust",
-          "h": 0.9,
-          "seconds": 1.4,
-          "text": "…開いた！",
-          "at": [
-            0.2,
-            0.3
-          ],
-          "to": [
-            0.45,
-            0.5
-          ],
-          "need": {
-            "id": "SH_EXP_SURPRISED",
-            "character": "shacho",
-            "refs": [
-              "SH_MASTER_2D"
-            ],
-            "desc": "目をまんまるにして口を小さく開け、ぽかんと驚いている顔。両腕は体の横に下ろしている。全身。"
-          }
-        },
-        {
           "asset": "SH_POSE_GUTS",
           "crop": "bust",
-          "h": 1.4,
+          "h": 1.2,
           "fx": [
-            "flash",
-            "shout"
+            "flash"
           ],
-          "seconds": 2.2,
+          "seconds": 2.4,
           "text": "開いたぞ、\nにゃーさん！",
           "at": [
             0.2,
@@ -341,7 +245,7 @@
       "speaker": "nyasan",
       "type": "monologue",
       "expression": "joy",
-      "line": "紙もハンコも大事。そこに一個ずつ足していけばいいんです",
+      "line": "紙もハンコも大事。そこに一個ずつ、足していけばいいんです",
       "panels": [
         {
           "asset": "NY_POSE_TEA",
@@ -349,16 +253,9 @@
           "fx": [
             "light"
           ],
-          "seconds": 2.0,
-          "text": "紙もハンコも\n大事。",
-          "at": [
-            0.2,
-            0.3
-          ],
-          "to": [
-            0.42,
-            0.35
-          ]
+          "h": 0.8,
+          "seconds": 2.2,
+          "text": "紙もハンコも大事。"
         },
         {
           "asset": "DUO_PC_HELP",
@@ -372,18 +269,8 @@
           "fx": [
             "light"
           ],
-          "seconds": 2.8,
-          "text": "そこに一個ずつ\n足していけば\nいいんです",
-          "at": [
-            0.78,
-            0.22
-          ],
-          "to": [
-            0.3,
-            0.5
-          ],
-          "perCol": 8,
-          "solo": true
+          "seconds": 3.2,
+          "text": "そこに一個ずつ、\n足していけばいいんです。"
         }
       ]
     }

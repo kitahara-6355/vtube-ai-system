@@ -106,9 +106,11 @@ def check(episode: dict, settings: dict) -> list[Finding]:
         f.append(Finding("NG", "仕込み", f"storyThreads にない id です: {setup.get('thread')}"))
 
     rows = texts(episode)
-    # 冒頭は画で見せる
-    if rows and rows[0][1] is not None and len(plain(rows[0][2])) > OPENING_TEXT:
-        f.append(Finding("注意", "冒頭2〜3秒", f"最初のコマの文字が{len(plain(rows[0][2]))}字あります（{OPENING_TEXT}字以内で画を主役に）"))
+    # 冒頭は画で見せる（最初のコマの文字を数える）
+    first = episode["scenes"][0]
+    opening = (first["panels"][0].get("text") or "") if first.get("panels") else first.get("line", "")
+    if len(plain(opening)) > OPENING_TEXT:
+        f.append(Finding("注意", "冒頭2〜3秒", f"最初のコマの文字が{len(plain(opening))}字あります（{OPENING_TEXT}字以内で画を主役に）"))
 
     # 独白中心。セリフは一言だけ
     speech = [(s, p, t) for s, p, t, mono in rows if not mono]

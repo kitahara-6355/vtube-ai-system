@@ -114,3 +114,13 @@ def test_policy_flags_drift():
     del ep["setup"]
     rules = {x.rule for x in policy.check(ep, settings) if x.level == "NG"}
     assert {"現状への尊重", "少しだけ先", "仕込み"} <= rules
+
+
+def test_manga_monologue_style_keeps_ui_zone_clear():
+    import manga
+    boxes = manga.layout([{"h": 1}, {"h": 1}], manga.MONO_BOTTOM)
+    assert boxes[-1][3] <= 1920 - 480  # ショートの下のUIに文字がかからない
+    overlay = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    manga.subtitle(overlay, boxes[-1], "社長、マウスを両手で包んでる…\n石鹸じゃないです…", (224, 122, 95))
+    x0, y0, x1, y1 = overlay.getbbox()
+    assert x1 <= manga.SAFE_RIGHT and boxes[-1][1] < y0 and y1 <= boxes[-1][3]
