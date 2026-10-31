@@ -55,6 +55,8 @@ def test_cutout_removes_outer_white_keeps_inner_white():
 
 def test_episode_files_are_valid():
     chars = json.loads((ROOT / "characters" / "characters.json").read_text(encoding="utf-8"))["characters"]
+    for c in chars.values():
+        assert c["appeal"], c["displayName"]  # 台本づくりで毎話どれかを見せる
     for path in (ROOT / "episodes").glob("*.json"):
         ep = json.loads(path.read_text(encoding="utf-8"))
         assert ep["scenes"], path
