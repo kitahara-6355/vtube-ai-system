@@ -101,3 +101,16 @@ def test_manga_vertical_lines_keep_punctuation():
     cols = manga.vertical_lines("大丈夫です。カチカチッて", 5)
     assert all(not c.startswith(("。", "ッ")) for c in cols)
     assert "".join(cols) == "大丈夫です。カチカチッて"
+
+
+def test_policy_flags_drift():
+    import policy
+    settings = json.loads((ROOT / "characters" / "characters.json").read_text(encoding="utf-8"))
+    for path in (ROOT / "episodes").glob("*.json"):  # 今の台本に NG はない
+        ep = json.loads(path.read_text(encoding="utf-8"))
+        assert not [x for x in policy.check(ep, settings) if x.level == "NG"], path
+    ep = json.loads((ROOT / "episodes" / "EP001_mouse.json").read_text(encoding="utf-8"))
+    ep["scenes"][1]["panels"][0]["text"] = "ハンコはもう古いです。こんなことも常識です"
+    del ep["setup"]
+    rules = {x.rule for x in policy.check(ep, settings) if x.level == "NG"}
+    assert {"現状への尊重", "少しだけ先", "仕込み"} <= rules

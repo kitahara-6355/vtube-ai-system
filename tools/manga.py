@@ -761,6 +761,8 @@ def main() -> None:
         prep(a.episode)
     else:
         render(a.episode)
+    import policy  # 成果物を作るたびに芯と照らす（tools/policy.py）
+    policy.run(a.episode)
 
 
 if __name__ == "__main__":

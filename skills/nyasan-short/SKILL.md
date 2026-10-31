@@ -8,13 +8,14 @@ description: 「DX事務所のにゃーさん」のYouTubeショートを1本作
 定額の範囲だけで、毎日1本のショートを作るための手順。外部APIは使わない。
 
 ## 前提
+- チャンネルの芯は `nyasan-channel-core` スキル。ネタ選び、台本、画像・動画の確認、投稿前のたびに呼んで方針ずれを確かめる。`nyasan.py` と `manga.py` の各コマンドの後には `tools/policy.py` が自動で走り、`out/EPxxx/方針チェック.md` を書く（NG があれば直してから進む）。
 - 台帳: `characters/characters.json`（キャラ設定）、`assets/library.json`（画像の台帳）
 - 画像の正本は共有ドライブ「美麗書院_共有データ」。ローカルの `assets/img/<素材ID>.png` に置いて使う（Drive for desktop の同期フォルダからコピー、または Google Drive コネクタでダウンロード）。
 - 必要なもの: Python 3、Pillow、numpy、ffmpeg
 
 ## 手順
 
-1. **ネタを決める** — `episodes/` の既存回と重ならないネタを選ぶ。ネタ帳は Drive の「クリエイティブ資産.JSON」の storyIdeas。迷ったら成長段階（よちよち編→つかまり立ち編→ひとり立ち編）の順に進める。
+1. **ネタを決める** — `nyasan-channel-core` の出す順番（いまの段階）で、選ぶ魅力と仕込みを先に決める。`episodes/` の既存回と重ならないネタを選ぶ。ネタ帳は Drive の「クリエイティブ資産.JSON」の storyIdeas。迷ったら成長段階（よちよち編→つかまり立ち編→ひとり立ち編）の順に進める。
 2. **台本を書く** — `nyasan-script` スキルに従って `episodes/EPxxx_<slug>.json` を作る。
 3. **素材をチェックする** —
    ```
