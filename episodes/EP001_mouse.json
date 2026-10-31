@@ -3,6 +3,14 @@
   "title": "社長、マウスと出会う",
   "story": "STORY-001 マウスとの戦い（クリエイティブ資産 v3.2）",
   "funnelStage": 1,
+  "appeal": {
+    "shacho": "現場ではプロなのに、PCの前だと赤ちゃん",
+    "nyasan": "表はやさしいのに、心の声は辛口。そのギャップがいい"
+  },
+  "setup": {
+    "thread": "estimate-past",
+    "how": "冒頭の「見積もりは手書きが一番だ」。理由は説明しない。"
+  },
   "scenes": [
     {
       "speaker": "shacho",

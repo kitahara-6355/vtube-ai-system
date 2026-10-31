@@ -12,8 +12,14 @@ description: 「DX事務所のにゃーさん」のショート台本を episode
 3. 心の声（モノローグ）のギャップが笑いと共感の源。
 4. 入口はキャラクター。ストーリーは毎話しっかり仕込むが、表に見せるのはキャラの魅力。
 
-## キャラの魅力（毎話どれかを見せる）
-`characters.*.appeal` が、視聴者に感じてほしい魅力の言葉。毎話、社長とにゃーさんそれぞれ1つ以上が画で伝わるようにする。冒頭2〜3秒は、どちらかの魅力が一目でわかる場面にする。
+## キャラの魅力と仕込み（書く前に選ぶ）
+`characters/characters.json` の言葉から、この回の主役の魅力と仕込みを先に選び、台本の `appeal` と `setup` に書く。`check` で表示され、設定にない言葉は「要確認」になる。
+- `characters.*.appeal.entry`: 一目で伝わる入口の魅力。`deep`: 見続けた人が気づく奥の魅力。社長とにゃーさんから1つずつ選ぶ。
+- `channel.relationshipAppeal`: 2人の関係の魅力。締めで少しだけ前に進める。
+- `channel.storyThreads`: 毎話1つ仕込む。説明せず、画と一言だけ。表に出すのは段階3から。
+- `channel.releasePhases`: いまどの段階かで選ぶ魅力を変える。段階1は entry 中心、段階2は関係、段階3は storyThreads。
+
+構成の置き場所: 冒頭2〜3秒＝入口の魅力が一目でわかる画 ／ 中盤＝にゃーさんの心の声と表のやさしさのギャップ ／ 締め＝2人の関係が少しだけ前に進む ／ どこか＝仕込み。
 
 ## 形
 - 6シーン前後、合計25〜35秒（ツールが文字数から秒数を出す。1シーン最大28字くらいが読みやすい）
@@ -28,6 +34,8 @@ description: 「DX事務所のにゃーさん」のショート台本を episode
   "title": "15字以内のタイトル",
   "story": "ネタ帳のID や元ネタ",
   "funnelStage": 1,
+  "appeal": {"shacho": "現場ではプロなのに、PCの前だと赤ちゃん", "nyasan": "表はやさしいのに、心の声は辛口。そのギャップがいい"},
+  "setup": {"thread": "estimate-past", "how": "冒頭の「見積もりは手書きが一番だ」。理由は説明しない。"},
   "scenes": [
     {"speaker": "shacho", "type": "line", "expression": "default", "line": "セリフ"},
     {"speaker": "nyasan", "type": "monologue", "expression": "worry", "line": "心の声（括弧は自動で付く）"},

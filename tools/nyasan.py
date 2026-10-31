@@ -145,6 +145,24 @@ def generation_request(missing: list[tuple[int, dict, Pick]], characters: dict, 
     return "\n".join(lines)
 
 
+def appeal_notes(episode: dict, characters: dict) -> list[str]:
+    """この回の魅力と仕込みを表示する。キャラ設定にない言葉や欄の書き忘れは「要確認」にする。"""
+    notes = []
+    for key, text in episode.get("appeal", {}).items():
+        appeal = characters["characters"][key]["appeal"]
+        known = text in appeal["entry"] + appeal["deep"]
+        notes.append(f"  魅力 {characters['characters'][key]['displayName']}: {text}{'' if known else '（要確認: キャラ設定にない言葉）'}")
+    if not episode.get("appeal"):
+        notes.append("  魅力: 要確認（appeal が未記入）")
+    setup = episode.get("setup")
+    threads = {t["id"] for t in characters["channel"]["storyThreads"]}
+    if setup:
+        notes.append(f"  仕込み {setup['thread']}: {setup['how']}{'' if setup['thread'] in threads else '（要確認: storyThreads にない id）'}")
+    else:
+        notes.append("  仕込み: 要確認（setup が未記入）")
+    return notes
+
+
 def check(episode_path: Path) -> tuple[list[tuple[int, dict, Pick]], Path | None]:
     episode = load_json(episode_path)
     assets = load_json(LIBRARY)["assets"]
@@ -159,6 +177,8 @@ def check(episode_path: Path) -> tuple[list[tuple[int, dict, Pick]], Path | None
         rows.append(f"  {i + 1:>2}. {scene['speaker']:<7} {pick.want:<28} → {pick.asset['id'] if pick.asset else '-':<16} {status}{'' if have else ' (画像未取得)'}")
     print(f"{episode['id']} {episode['title']}  {sum(scene_seconds(s) for s in episode['scenes']) + episode.get('endCard', {}).get('seconds', 0):.1f}秒")
     print("\n".join(rows))
+    for line in appeal_notes(episode, characters):
+        print(line)
     req_path = None
     if missing:
         req_path = OUT_DIR / episode["id"] / "画像の生成指示書.md"

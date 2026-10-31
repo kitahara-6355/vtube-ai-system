@@ -54,12 +54,17 @@ def test_cutout_removes_outer_white_keeps_inner_white():
 
 
 def test_episode_files_are_valid():
-    chars = json.loads((ROOT / "characters" / "characters.json").read_text(encoding="utf-8"))["characters"]
+    settings = json.loads((ROOT / "characters" / "characters.json").read_text(encoding="utf-8"))
+    chars = settings["characters"]
+    threads = {t["id"] for t in settings["channel"]["storyThreads"]}
     for c in chars.values():
-        assert c["appeal"], c["displayName"]  # 台本づくりで毎話どれかを見せる
+        assert c["appeal"]["entry"] and c["appeal"]["deep"], c["displayName"]  # 台本づくりで毎話どれかを見せる
     for path in (ROOT / "episodes").glob("*.json"):
         ep = json.loads(path.read_text(encoding="utf-8"))
         assert ep["scenes"], path
+        for key, text in ep["appeal"].items():  # この回の魅力はキャラ設定の言葉から選ぶ
+            assert text in chars[key]["appeal"]["entry"] + chars[key]["appeal"]["deep"], (path, text)
+        assert ep["setup"]["thread"] in threads, path
         for s in ep["scenes"]:
             assert s["speaker"] in chars, path
             assert s.get("type", "line") in ("line", "monologue"), path
