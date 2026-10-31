@@ -1,0 +1,348 @@
+{
+  "id": "EP003",
+  "title": "社長、矢印を見失う",
+  "story": "クリエイティブ資産 Lv1-4「消えたポインターを探せ」",
+  "funnelStage": 1,
+  "appeal": {
+    "shacho": "どんくさいが憎めない",
+    "nyasan": "専門家じゃないから、私でもできそうと思える"
+  },
+  "setup": {
+    "thread": "dekita-memo",
+    "how": "最後のコマの机の端に、にゃーさんの小さなメモ帳を置く。中身は見せない（画像は次に作る時に足す）。"
+  },
+  "scenes": [
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "line": "…あれ？矢印がいない…",
+      "panels": [
+        {
+          "asset": "SH_POSE_PC_CONFUSED",
+          "crop": "bust",
+          "h": 1.1,
+          "seconds": 1.4,
+          "text": "…あれ？",
+          "at": [
+            0.22,
+            0.28
+          ],
+          "to": [
+            0.5,
+            0.4
+          ]
+        },
+        {
+          "asset": "@screen",
+          "crop": [
+            0.04,
+            0.42,
+            0.42,
+            0.88
+          ],
+          "h": 0.9,
+          "speaker": "shacho",
+          "seconds": 1.8,
+          "text": "矢印が\nいない…",
+          "at": [
+            0.8,
+            0.3
+          ],
+          "to": [
+            0.95,
+            0.6
+          ],
+          "tag": false,
+          "cursor": null
+        }
+      ],
+      "expression": "troubled",
+      "pose": "pc"
+    },
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "line": "出てこい！矢印！",
+      "panels": [
+        {
+          "asset": "SH_POSE_PC_PANIC",
+          "crop": "bust",
+          "h": 1.2,
+          "fx": [
+            "lines",
+            "shake",
+            "shout"
+          ],
+          "seconds": 1.8,
+          "text": "出てこい！\n矢印！",
+          "at": [
+            0.2,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.45
+          ],
+          "sfx": {
+            "text": "ブンブン",
+            "at": [
+              0.85,
+              0.65
+            ],
+            "size": 88
+          },
+          "need": {
+            "id": "SH_POSE_MOUSE_SHAKE",
+            "character": "shacho",
+            "refs": [
+              "SH_MASTER_2D",
+              "SH_POSE_PC_PANIC"
+            ],
+            "crop": "bust",
+            "desc": "マウスを右手で高く持ち上げ、振り回している社長。必死で焦った顔、汗が飛ぶ。マウスのコードが揺れている。全身。机とモニターは描かない。"
+          }
+        },
+        {
+          "asset": "NY_EXP_ANXIOUS",
+          "crop": "face",
+          "monologue": true,
+          "speaker": "nyasan",
+          "h": 1.0,
+          "seconds": 2.0,
+          "text": "社長、マウスは\n振るものじゃ…",
+          "at": [
+            0.25,
+            0.28
+          ],
+          "to": [
+            0.5,
+            0.55
+          ]
+        }
+      ],
+      "expression": "panic",
+      "pose": "pc"
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "line": "画面の右上に、ずっといます…",
+      "panels": [
+        {
+          "asset": "NY_POSE_EXASPERATED",
+          "crop": "face",
+          "h": 1.2,
+          "seconds": 2.0,
+          "text": "画面の右上に、\nずっと\nいます…",
+          "at": [
+            0.25,
+            0.28
+          ],
+          "to": [
+            0.5,
+            0.55
+          ]
+        },
+        {
+          "asset": "@screen",
+          "crop": [
+            0.06,
+            0.42,
+            0.3,
+            0.6
+          ],
+          "monologue": false,
+          "h": 0.8,
+          "fx": [],
+          "seconds": 1.2,
+          "sfx": {
+            "text": "ポツン",
+            "at": [
+              0.15,
+              0.5
+            ],
+            "size": 72
+          },
+          "cursor": [
+            0.9,
+            0.12
+          ]
+        }
+      ],
+      "expression": "exasperated"
+    },
+    {
+      "speaker": "nyasan",
+      "type": "line",
+      "line": "マウスを机の上で、小さく左右に動かしてみてください",
+      "panels": [
+        {
+          "asset": "NY_POSE_EXPLAIN",
+          "crop": "bust",
+          "h": 1.2,
+          "seconds": 2.6,
+          "text": "机の上で\n小さく左右に\n動かして\nみてください",
+          "at": [
+            0.22,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.4
+          ],
+          "perCol": 7
+        },
+        {
+          "asset": "SH_POSE_PC_CONFUSED",
+          "crop": "full",
+          "h": 0.8,
+          "speaker": "shacho",
+          "seconds": 1.3,
+          "sfx": {
+            "text": "スッ スッ",
+            "at": [
+              0.2,
+              0.5
+            ],
+            "size": 72
+          },
+          "need": {
+            "id": "SH_POSE_MOUSE_WIGGLE",
+            "character": "shacho",
+            "refs": [
+              "SH_MASTER_2D",
+              "SH_POSE_PC_CONFUSED"
+            ],
+            "crop": "bust",
+            "desc": "椅子に座った社長が、机の上のマウスを右手でそっと小さく左右に動かしている。真剣で少し不安げな顔。上半身。机の天板とマウスだけ描き、モニターは描かない。"
+          }
+        }
+      ],
+      "pose": "point"
+    },
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "line": "いた！こんな所に隠れとった！",
+      "panels": [
+        {
+          "asset": "SH_EXP_EMBARRASSED",
+          "crop": "bust",
+          "h": 0.9,
+          "seconds": 1.2,
+          "text": "いた！",
+          "at": [
+            0.22,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.5
+          ],
+          "fx": [
+            "shout"
+          ]
+        },
+        {
+          "asset": "SH_EXP_CONFIDENT",
+          "crop": "bust",
+          "h": 1.3,
+          "fx": [
+            "flash"
+          ],
+          "seconds": 2.0,
+          "text": "こんな所に\n隠れとった！",
+          "at": [
+            0.2,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.45
+          ],
+          "sfx": {
+            "text": "ピコッ",
+            "at": [
+              0.85,
+              0.6
+            ],
+            "size": 88,
+            "color": [
+              200,
+              120,
+              0
+            ]
+          },
+          "flow": {
+            "from": "SH_EXP_EMBARRASSED",
+            "motion": "His surprised face relaxes into a relieved, confident grin and he crosses his arms with a satisfied nod."
+          }
+        }
+      ],
+      "expression": "confident"
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "line": "見失ったら、小さく揺らす。それだけで、ちゃんと見つかります",
+      "panels": [
+        {
+          "asset": "NY_EXP_CHEER",
+          "crop": "face",
+          "fx": [
+            "light"
+          ],
+          "seconds": 1.8,
+          "text": "見失ったら、\n小さく揺らす。",
+          "at": [
+            0.22,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.45
+          ]
+        },
+        {
+          "asset": "DUO_PC_HELP",
+          "crop": [
+            0.02,
+            -0.08,
+            0.98,
+            0.95
+          ],
+          "h": 1.2,
+          "fx": [
+            "light"
+          ],
+          "seconds": 2.6,
+          "text": "それだけで、\nちゃんと\n見つかります",
+          "at": [
+            0.78,
+            0.22
+          ],
+          "to": [
+            0.3,
+            0.5
+          ]
+        }
+      ],
+      "expression": "cheer"
+    }
+  ],
+  "endCard": {
+    "seconds": 2.5,
+    "message": "ゆっくり、いっしょに。",
+    "cta": "チャンネル登録で、社長の成長を見守ってください"
+  },
+  "upload": {
+    "title": "社長、マウスの矢印を見失う【DX事務所のにゃーさん】",
+    "description": "画面のどこかに消えた矢印。社長はマウスを振り回しますが…\n見失ったら、机の上で小さく揺らすだけ。",
+    "hashtags": [
+      "#Shorts",
+      "#DX",
+      "#中小企業",
+      "#パソコン初心者"
+    ]
+  }
+}

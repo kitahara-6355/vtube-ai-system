@@ -1,0 +1,434 @@
+{
+  "version": "1.1",
+  "updated": "2026-10-28",
+  "note": "画像の正本は共有ドライブ「美麗書院_共有データ/(PJ)未整理/追加　にゃーさん」（フォルダID 186RojqQPdYMTTFxe9KKGvGDKgF2_ieOS）。ここは台帳だけ。ローカルでは assets/img/<id>.png に置く（.gitignore 済み）。bg=white は白背景で自動切り抜き可、bg=scene は背景込みの1枚絵。",
+  "assets": [
+    {
+      "id": "NY_EXP_DEFAULT",
+      "character": "nyasan",
+      "expression": "default",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1nDgn2wu1BQNvfDwvrtG1doTkahmXSYH8",
+      "driveName": "06優しい笑顔（デフォルト）.png"
+    },
+    {
+      "id": "NY_EXP_JOY",
+      "character": "nyasan",
+      "expression": "joy",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1INsHenoi_0hGGQS7TJb-DKco5N0aMdLO",
+      "driveName": "05喜びの表情.png"
+    },
+    {
+      "id": "NY_EXP_WORRY",
+      "character": "nyasan",
+      "expression": "worry",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1WpsUBMXpN8KhTjo69ydww8Ke2pP0koyc",
+      "driveName": "07心配そうな顔.png"
+    },
+    {
+      "id": "NY_EXP_TROUBLED",
+      "character": "nyasan",
+      "expression": "troubled",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1eQmTaY8Je58aXjB59lIGqkImIDe623qU",
+      "driveName": "09困り顔.png"
+    },
+    {
+      "id": "NY_EXP_CHEER",
+      "character": "nyasan",
+      "expression": "cheer",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1NoboofrL6_VMGzGiL6qDMq1n8WBV10YQ",
+      "driveName": "08応援する表情.png"
+    },
+    {
+      "id": "NY_EXP_ANXIOUS",
+      "character": "nyasan",
+      "expression": "anxious",
+      "pose": "pray",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1lZJwceqhstwOdoc28lvRrJDUW5CL1LPi",
+      "driveName": "1757066666627.jpg"
+    },
+    {
+      "id": "NY_POSE_EXASPERATED",
+      "character": "nyasan",
+      "expression": "exasperated",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1Yz54tfuU1t8vQFon93yXaCYXz-18pZ2c",
+      "driveName": "1757416511601.jpg（②呆れ顔）",
+      "note": "心の声のツッコミ向き"
+    },
+    {
+      "id": "NY_POSE_GIGGLE",
+      "character": "nyasan",
+      "expression": "giggle",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "19SQ5GOOQD7ooq2SlBaGjie5YB7zFr1u-",
+      "driveName": "1757144667942.jpg"
+    },
+    {
+      "id": "NY_POSE_STAND",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "stand",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1HoGh07riANcj9a5h34VKiuvYo0DOC0H4",
+      "driveName": "Gemini_Generated_Image_pzukugpzukugpzuk.png"
+    },
+    {
+      "id": "NY_POSE_POINT",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "point",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "12NfWZlmRvfcYySecIG7HI8nrsAIGjo6v",
+      "driveName": "14指差しポーズ.png"
+    },
+    {
+      "id": "NY_POSE_BOW",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "bow",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1GnKyRjDB1i0Q6XFF6KJUyfFI58CmzZC_",
+      "driveName": "11お辞儀をしているポーズ.png"
+    },
+    {
+      "id": "NY_POSE_DOCS",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "docs",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1veM9Y4wz4OC6j0QOKPTwThZafImI8yRY",
+      "driveName": "12書類を胸に抱えて立っているポーズ.png"
+    },
+    {
+      "id": "NY_POSE_TEA",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "tea",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1yu6YlmWOFpQKAGqb9q3h2lbOLaX1pxNp",
+      "driveName": "13お茶を差し出しているポーズ.png"
+    },
+    {
+      "id": "NY_SCENE_PC",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "pc",
+      "framing": "scene",
+      "bg": "scene",
+      "driveId": "1xTsF1xaxa--WwJEx_HU6HR363Xr2GHql",
+      "driveName": "10デスクでPCを操作しているポーズ.png"
+    },
+    {
+      "id": "NY_POSE_EXPLAIN",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "explain",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1s3iS0u_sko8bclFgGJL3fAHhFUzlppD4",
+      "driveName": "説明01両手を広げて説明しているポーズ.png"
+    },
+    {
+      "id": "NY_POSE_EXPLAIN_POINT",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "point",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1sW0NZtHVEgjbv1qnTIuHZxSUhbMgOE6f",
+      "driveName": "説明02一点を指差しながら説明.png"
+    },
+    {
+      "id": "NY_POSE_NOD",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "nod",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "16nhU-JXXbVjIqo9A-mHWZezFl2I8RMEo",
+      "driveName": "説明03頷きながら聞いている（相槌を打つ）ポーズ.png"
+    },
+    {
+      "id": "NY_POSE_WAVE",
+      "character": "nyasan",
+      "expression": "joy",
+      "pose": "wave",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1bKnwGHeRq0ZniswESF0dcM09ABaazNM0",
+      "driveName": "挨拶01手を振るポーズで明るい笑顔.png"
+    },
+    {
+      "id": "NY_POSE_BIGSMILE",
+      "character": "nyasan",
+      "expression": "joy",
+      "pose": "greet",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1UmmIksU7X8NOAh39SstAusKhkF1mdaZI",
+      "driveName": "挨拶03満面の笑顔の挨拶.png"
+    },
+    {
+      "id": "NY_POSE_GREET_BOW",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "greet_bow",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1XcjGfnLTnDmSK5Uatu3oqnzt-qU5JiTE",
+      "driveName": "挨拶04お辞儀をしながらの挨拶.png"
+    },
+    {
+      "id": "DUO_PC_HELP",
+      "character": "nyasan",
+      "with": "shacho",
+      "expression": "default",
+      "pose": "help_pc",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1z-J8sxOxTmSpL0M_KQVkKElO1KfnlTlx",
+      "driveName": "1756896956908.jpg",
+      "note": "にゃーさんが社長のPC操作を横で支える2人の絵（キャラ設定の関係性の参考画像）"
+    },
+    {
+      "id": "NY_REF_SHEET",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "turnaround",
+      "framing": "full",
+      "bg": "white",
+      "reference": true,
+      "driveId": "1Drovo8oXy5x25nb5j_qFcSA1LVdoERVe",
+      "driveName": "基準画像_生成プロンプト用.png"
+    },
+    {
+      "id": "NY_REF_FRONT",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "turnaround_front",
+      "framing": "full",
+      "bg": "white",
+      "reference": true,
+      "driveId": "15Dkg_KpRJf4m-fjKdIhAeoLhIiazFTOO",
+      "driveName": "01正面.png"
+    },
+    {
+      "id": "NY_REF_SIDE_R",
+      "character": "nyasan",
+      "expression": "default",
+      "pose": "turnaround_side",
+      "framing": "full",
+      "bg": "white",
+      "reference": true,
+      "driveId": "1GQDttDg5Z4pU_K5ilUsqoa34fM-RFBnl",
+      "driveName": "02側面図（右）.png"
+    },
+    {
+      "id": "SH_MASTER_2D",
+      "character": "shacho",
+      "expression": "default",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1BIygSbjk9Rj_Z5DtZ5-XIrp4shnlA2qN",
+      "driveName": "直立ポーズ.png"
+    },
+    {
+      "id": "SH_EXP_PANIC",
+      "character": "shacho",
+      "expression": "panic",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "11MKCSZ2qnxBWUklGN3q9f5D1nqSL5wri",
+      "driveName": "表情02困惑顔.png"
+    },
+    {
+      "id": "SH_EXP_TROUBLED",
+      "character": "shacho",
+      "expression": "troubled",
+      "pose": "arms_crossed",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1JGar7ofO_LLz8oPmNM9N-VbRBIQ_mfEz",
+      "driveName": "困りながら腕組みポーズ.png"
+    },
+    {
+      "id": "SH_EXP_THINKING",
+      "character": "shacho",
+      "expression": "thinking",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1okIKa3cjWfKoR4GBgpXGOMSX0xoFloCa",
+      "driveName": "真剣顔.png"
+    },
+    {
+      "id": "SH_EXP_EMBARRASSED",
+      "character": "shacho",
+      "expression": "embarrassed",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1FgvJ0TtoWzUqwW-PpB77JaugJJyWQm2F",
+      "driveName": "喜び顔.png",
+      "note": "照れ笑い・うれしさを隠しきれない顔"
+    },
+    {
+      "id": "SH_EXP_PROUD",
+      "character": "shacho",
+      "expression": "proud",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1eP4WNz_zYGAGmE6BeTCGP7R46IPIOTh6",
+      "driveName": "1757066847520.jpg"
+    },
+    {
+      "id": "SH_EXP_CONFIDENT",
+      "character": "shacho",
+      "expression": "confident",
+      "pose": "arms_crossed",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "17EHFEllTCcDPnfPxyi5Uxwvc8l8mZBDD",
+      "driveName": "1757144038769.jpg"
+    },
+    {
+      "id": "SH_POSE_GUTS",
+      "character": "shacho",
+      "expression": "joy",
+      "pose": "guts",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "16CD3sMZockp4PTI2DLBsmGyQDvld2NeS",
+      "driveName": "ガッツポーズ.png"
+    },
+    {
+      "id": "SH_POSE_STAMP",
+      "character": "shacho",
+      "expression": "joy",
+      "pose": "stamp",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1zvNK8t1Dcc9-WGJcqHKNWGix9_ET52vD",
+      "driveName": "1756850598933.jpg",
+      "note": "ハンコを押してご満悦。紙とハンコを尊重する回の導入向き"
+    },
+    {
+      "id": "SH_POSE_POINT",
+      "character": "shacho",
+      "expression": "serious",
+      "pose": "point",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1gxS1Vlxm7fgu4VtBqC031ExOwSwQG-z1",
+      "driveName": "指差しポーズ.png"
+    },
+    {
+      "id": "SH_POSE_PC_PANIC",
+      "character": "shacho",
+      "expression": "panic",
+      "pose": "pc",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1ajyJ2PVf98jqsJwYzNutuUfHOVosMnZ7",
+      "driveName": "パソコン操作中ポーズ.png",
+      "note": "マウスを握って焦る"
+    },
+    {
+      "id": "SH_POSE_PC_CONFUSED",
+      "character": "shacho",
+      "expression": "troubled",
+      "pose": "pc",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "123SQ9xkz7z02F7QNfnSK97bvPXaOsYVX",
+      "driveName": "③パニック顔1757144769665.jpg.png",
+      "note": "Excelの前で混乱"
+    },
+    {
+      "id": "SH_REF_SIDE",
+      "character": "shacho",
+      "expression": "default",
+      "pose": "turnaround_side",
+      "framing": "full",
+      "bg": "white",
+      "reference": true,
+      "driveId": "1iMJ-slmfsWInZYNmeZ2mn-TH3mZE4goo",
+      "driveName": "側面図.png"
+    },
+    {
+      "id": "SH_REF_BACK",
+      "character": "shacho",
+      "expression": "default",
+      "pose": "turnaround_back",
+      "framing": "full",
+      "bg": "white",
+      "reference": true,
+      "driveId": "1pwjjI9WOsuDo38dqER-BjNRKL-XM6UDm",
+      "driveName": "背面図.png"
+    },
+    {
+      "id": "SH_REAL_SHY",
+      "character": "shacho",
+      "expression": "shy",
+      "style": "real",
+      "framing": "bust",
+      "bg": "white",
+      "reference": true,
+      "driveId": "1nS9sSHeyvqSoWHB5FhOrchtnKH71pPAG",
+      "driveName": "Gemini_Generated_Image_32v1rs32v1rs32v1.png",
+      "note": "リアル寄り（キリっと系）の演出用。ちびキャラとは頭身が違う"
+    },
+    {
+      "id": "SH_POSE_CARD",
+      "character": "shacho",
+      "expression": "nervous",
+      "pose": "card",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1NxH2ChmUhR-_nBYzHmoB7ADYQiPjvuMd",
+      "driveName": "挨拶01名刺を手渡し.jfif",
+      "note": "(PJ)未整理/追加　個人興味/OpenClow PJ/YochiYochi PJ/3_Creative_Assets/【フェーズ2】/ステップ4 から。汗をかいて名刺を両手で持つ。胸のロゴ表記が崩れている"
+    }
+  ],
+  "unreviewed": [
+    {
+      "driveId": "1pOu6A6_QUCGQ9_o5AtY0dKBUVtVxaiL6",
+      "driveName": "Gemini_Generated_Image_5vmzf65vmzf65vmz.png",
+      "reason": "キャラ設定ではにゃーさんのリアルスタイル。まだ中身を確認していない"
+    },
+    {
+      "driveId": "1IjvjPg27UnHdVxYsGTmwUxHBHmcC7_kt",
+      "driveName": "1756940005490.jpg",
+      "reason": "キャラ設定では社長のリアルスタイル。まだ中身を確認していない"
+    }
+  ],
+  "excluded": [
+    {
+      "driveId": "1FnG4mb88a1zWm5LSb2GL7aiyze9hPdPm",
+      "driveName": "Scene3_初心者社長_困り顔.png",
+      "reason": "社長の設定画と別人（髪色・服装が違う）。使わない。"
+    },
+    {
+      "driveId": "1m-qqXEjW_tEKcrZL8IDAvTFzClOjiMrm",
+      "driveName": "Scene1_初心者社長_自信、誇り.png",
+      "reason": "実写寄りで別人。使わない。"
+    }
+  ]
+}

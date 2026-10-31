@@ -1,0 +1,294 @@
+{
+  "id": "EP001",
+  "title": "社長、マウスと出会う",
+  "story": "STORY-001 マウスとの戦い（クリエイティブ資産 v3.2）",
+  "funnelStage": 1,
+  "style": "monologue",
+  "appeal": {
+    "shacho": "現場ではプロなのに、PCの前だと赤ちゃん",
+    "nyasan": "表はやさしいのに、心の声は辛口。そのギャップがいい"
+  },
+  "setup": {
+    "thread": "estimate-past",
+    "how": "社長の心の声「見積もりは、手書きが一番なんだが…」と、ハンコを押す画。理由は説明しない。"
+  },
+  "scenes": [
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "expression": "panic",
+      "pose": "pc",
+      "line": "（画のみ）マウスを両手で包む社長",
+      "panels": [
+        {
+          "asset": "SH_POSE_PC_PANIC",
+          "crop": [
+            0.16,
+            0.58,
+            0.64,
+            0.96
+          ],
+          "h": 1.2,
+          "fx": [
+            "lines"
+          ],
+          "seconds": 2.2,
+          "caption": "月曜、朝9時。",
+          "sfx": {
+            "text": "ぎゅっ",
+            "at": [
+              0.85,
+              0.25
+            ],
+            "size": 88
+          },
+          "need": {
+            "id": "SH_POSE_MOUSE_SOAP",
+            "character": "shacho",
+            "refs": [
+              "SH_MASTER_2D"
+            ],
+            "crop": "bust",
+            "desc": "椅子に座った社長が、パソコンのマウスを石鹸のように両手で包み込み、大事そうに胸の前で持っている。困り眉で真剣な顔。上半身中心。机とモニターは描かない。"
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "expression": "exasperated",
+      "line": "社長、マウスを両手で包んでる…石鹸じゃないです…",
+      "panels": [
+        {
+          "asset": "NY_POSE_EXASPERATED",
+          "crop": "face",
+          "h": 0.8,
+          "seconds": 3.0,
+          "text": "社長、マウスを両手で包んでる…\n石鹸じゃないです…"
+        }
+      ]
+    },
+    {
+      "speaker": "shacho",
+      "type": "monologue",
+      "expression": "joy",
+      "pose": "stamp",
+      "line": "見積もりは、手書きが一番なんだが…今日こそ、PCで作る",
+      "panels": [
+        {
+          "asset": "SH_POSE_STAMP",
+          "crop": "full",
+          "fx": [
+            "light"
+          ],
+          "seconds": 2.6,
+          "text": "見積もりは、\n手書きが一番なんだが…",
+          "sfx": {
+            "text": "ポンッ",
+            "at": [
+              0.86,
+              0.3
+            ],
+            "size": 84
+          }
+        },
+        {
+          "asset": "SH_POSE_POINT",
+          "crop": "bust",
+          "fx": [
+            "lines",
+            "light"
+          ],
+          "seconds": 2.2,
+          "text": "今日こそ、PCで作る。"
+        }
+      ]
+    },
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "expression": "panic",
+      "pose": "pc",
+      "line": "ダブル…クリック？",
+      "panels": [
+        {
+          "asset": "SH_POSE_PC_PANIC",
+          "crop": "bust",
+          "seconds": 1.8,
+          "text": "ダブル…\nクリック？",
+          "at": [
+            0.18,
+            0.3
+          ],
+          "to": [
+            0.5,
+            0.35
+          ]
+        }
+      ]
+    },
+    {
+      "speaker": "shacho",
+      "type": "monologue",
+      "expression": "panic",
+      "line": "二回も押したら、壊れんか…",
+      "panels": [
+        {
+          "asset": "SH_EXP_PANIC",
+          "crop": "face",
+          "h": 1.1,
+          "fx": [
+            "lines",
+            "shake"
+          ],
+          "seconds": 2.4,
+          "text": "二回も押したら、壊れんか…",
+          "flow": {
+            "from": "SH_EXP_TROUBLED",
+            "motion": "His worried face suddenly turns into panic: eyes go wide, mouth opens wide, a sweat drop pops out."
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "expression": "cheer",
+      "pose": "point",
+      "line": "力みすぎです、社長…少しだけ速く、2回。それだけです",
+      "panels": [
+        {
+          "asset": "NY_EXP_CHEER",
+          "crop": "face",
+          "seconds": 2.0,
+          "text": "力みすぎです、社長…"
+        },
+        {
+          "asset": "NY_POSE_POINT",
+          "crop": "bust",
+          "fx": [
+            "light"
+          ],
+          "seconds": 2.6,
+          "text": "少しだけ速く、２回。それだけです。",
+          "sfx": {
+            "text": "カチカチッ",
+            "at": [
+              0.86,
+              0.3
+            ],
+            "size": 80
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "expression": "joy",
+      "pose": "guts",
+      "line": "開いたぞ、にゃーさん！",
+      "panels": [
+        {
+          "asset": "SH_POSE_PC_CONFUSED",
+          "crop": "full",
+          "h": 0.8,
+          "seconds": 1.2,
+          "sfx": {
+            "text": "カチカチッ",
+            "at": [
+              0.84,
+              0.35
+            ],
+            "size": 80
+          }
+        },
+        {
+          "asset": "SH_POSE_GUTS",
+          "crop": "bust",
+          "h": 1.2,
+          "fx": [
+            "flash"
+          ],
+          "seconds": 2.4,
+          "text": "開いたぞ、\nにゃーさん！",
+          "at": [
+            0.2,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.45
+          ],
+          "sfx": {
+            "text": "パアァ",
+            "at": [
+              0.85,
+              0.7
+            ],
+            "size": 96,
+            "color": [
+              200,
+              120,
+              0
+            ]
+          },
+          "flow": {
+            "from": "SH_MASTER_2D",
+            "motion": "He breaks into a big open-mouthed smile and raises his right fist up high in one quick motion."
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "expression": "joy",
+      "line": "紙もハンコも大事。そこに一個ずつ、足していけばいいんです",
+      "panels": [
+        {
+          "asset": "NY_POSE_TEA",
+          "crop": "bust",
+          "fx": [
+            "light"
+          ],
+          "h": 0.8,
+          "seconds": 2.2,
+          "text": "紙もハンコも大事。"
+        },
+        {
+          "asset": "DUO_PC_HELP",
+          "crop": [
+            0.02,
+            -0.08,
+            0.98,
+            0.95
+          ],
+          "h": 1.2,
+          "fx": [
+            "light"
+          ],
+          "seconds": 3.2,
+          "text": "そこに一個ずつ、\n足していけばいいんです。"
+        }
+      ]
+    }
+  ],
+  "endCard": {
+    "seconds": 2.5,
+    "message": "ゆっくり、いっしょに。",
+    "cta": "チャンネル登録で、社長の成長を見守ってください"
+  },
+  "upload": {
+    "title": "社長、マウスと出会う【DX事務所のにゃーさん】",
+    "description": "PCが苦手な二代目社長と、ちょっとだけ先を行く事務員にゃーさんの、ゆっくりDX日記。\n紙もハンコも否定しない。ひとつずつ、足していきます。",
+    "hashtags": [
+      "#Shorts",
+      "#DX",
+      "#中小企業",
+      "#PC初心者",
+      "#にゃーさん"
+    ]
+  }
+}
