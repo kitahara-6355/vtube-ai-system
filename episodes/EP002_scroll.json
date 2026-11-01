@@ -1,0 +1,336 @@
+{
+  "id": "EP002",
+  "title": "社長、スクロールで酔う",
+  "story": "クリエイティブ資産 Lv1-3「スクロール酔いご注意」",
+  "funnelStage": 1,
+  "appeal": {
+    "shacho": "小さな成功で子どもみたいに喜ぶのがかわいい",
+    "nyasan": "優しくフォローする姿が天使みたい"
+  },
+  "setup": {
+    "thread": "genba",
+    "how": "社長が探しているのは現場の手順書。現場では手順を大事にする人だと、画でちらっと見せる。"
+  },
+  "scenes": [
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "line": "よし、手順書を読むぞ。マニュアルは下の方か…",
+      "panels": [
+        {
+          "asset": "SH_MASTER_2D",
+          "crop": "face",
+          "h": 0.9,
+          "seconds": 1.6,
+          "text": "よし、\n手順書を\n読むぞ。",
+          "at": [
+            0.22,
+            0.32
+          ],
+          "to": [
+            0.45,
+            0.45
+          ]
+        },
+        {
+          "asset": "SH_POSE_PC_CONFUSED",
+          "crop": "bust",
+          "row": 1,
+          "h": 1.1,
+          "seconds": 1.6,
+          "text": "下の方か…",
+          "at": [
+            0.25,
+            0.25
+          ],
+          "to": [
+            0.5,
+            0.4
+          ]
+        },
+        {
+          "asset": "SH_POSE_PC_CONFUSED",
+          "crop": "full",
+          "row": 1,
+          "h": 1.1,
+          "fx": [
+            "lines",
+            "shake"
+          ],
+          "seconds": 1.4,
+          "sfx": {
+            "text": "グルグルグル",
+            "at": [
+              0.2,
+              0.5
+            ],
+            "size": 80
+          },
+          "need": {
+            "id": "SH_POSE_WHEEL_SPIN",
+            "character": "shacho",
+            "refs": [
+              "SH_MASTER_2D",
+              "SH_POSE_PC_CONFUSED"
+            ],
+            "crop": "bust",
+            "desc": "椅子に座った社長が、右手の人差し指でマウスのホイールを猛烈に回している。指の周りに回転の動き。前のめりで必死な顔。上半身。机とモニターは描かない。"
+          }
+        }
+      ],
+      "expression": "default"
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "line": "社長、ホイール回しすぎです…画面が飛んでます…",
+      "panels": [
+        {
+          "asset": "NY_EXP_WORRY",
+          "crop": "face",
+          "h": 1.2,
+          "seconds": 2.2,
+          "text": "社長、\nホイール\n回しすぎです…",
+          "at": [
+            0.25,
+            0.28
+          ],
+          "to": [
+            0.5,
+            0.55
+          ]
+        },
+        {
+          "asset": "@screen",
+          "crop": null,
+          "monologue": false,
+          "fx": [
+            "lines"
+          ],
+          "seconds": 1.4,
+          "sfx": {
+            "text": "ビュンビュン",
+            "at": [
+              0.8,
+              0.5
+            ],
+            "size": 84
+          },
+          "scroll": true
+        }
+      ],
+      "expression": "worry"
+    },
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "line": "め、目が回る…！どこまで行ったんだ…",
+      "panels": [
+        {
+          "asset": "SH_EXP_PANIC",
+          "crop": "face",
+          "h": 1.2,
+          "fx": [
+            "lines",
+            "shake",
+            "shout"
+          ],
+          "seconds": 1.8,
+          "text": "め、目が\n回る…！",
+          "at": [
+            0.2,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.5
+          ],
+          "need": {
+            "id": "SH_EXP_DIZZY",
+            "character": "shacho",
+            "refs": [
+              "SH_MASTER_2D",
+              "SH_EXP_PANIC"
+            ],
+            "desc": "目がぐるぐるの渦巻きになって、ふらふらと体が傾いている。頭の上に小さな星やひよこが回っている漫画的な表現。全身。"
+          },
+          "flow": {
+            "from": "SH_EXP_TROUBLED",
+            "motion": "His face goes dizzy: eyes spin, head wobbles side to side, he sways on his feet."
+          }
+        },
+        {
+          "asset": "SH_EXP_TROUBLED",
+          "crop": "bust",
+          "seconds": 1.6,
+          "text": "どこまで\n行ったんだ…",
+          "at": [
+            0.22,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.45
+          ]
+        }
+      ],
+      "expression": "panic"
+    },
+    {
+      "speaker": "nyasan",
+      "type": "line",
+      "line": "ゆっくり、コロコロって一段ずつです",
+      "panels": [
+        {
+          "asset": "NY_POSE_EXPLAIN_POINT",
+          "crop": "bust",
+          "h": 1.1,
+          "seconds": 2.4,
+          "text": "ゆっくり、\nコロコロって\n１段ずつです",
+          "at": [
+            0.22,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.4
+          ]
+        },
+        {
+          "asset": "SH_POSE_PC_CONFUSED",
+          "crop": "full",
+          "h": 0.8,
+          "speaker": "shacho",
+          "seconds": 1.4,
+          "sfx": {
+            "text": "コロ…コロ…",
+            "at": [
+              0.2,
+              0.5
+            ],
+            "size": 72
+          }
+        }
+      ],
+      "pose": "point"
+    },
+    {
+      "speaker": "shacho",
+      "type": "line",
+      "line": "…あった。見つけたぞ！これだな！",
+      "panels": [
+        {
+          "asset": "SH_EXP_THINKING",
+          "crop": "bust",
+          "h": 0.9,
+          "seconds": 1.3,
+          "text": "…あった。",
+          "at": [
+            0.22,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.5
+          ]
+        },
+        {
+          "asset": "SH_EXP_PROUD",
+          "crop": "bust",
+          "h": 1.3,
+          "fx": [
+            "flash"
+          ],
+          "seconds": 2.0,
+          "text": "見つけたぞ！\nこれだな！",
+          "at": [
+            0.2,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.45
+          ],
+          "sfx": {
+            "text": "キラーン",
+            "at": [
+              0.85,
+              0.65
+            ],
+            "size": 88,
+            "color": [
+              200,
+              120,
+              0
+            ]
+          },
+          "flow": {
+            "from": "SH_EXP_THINKING",
+            "motion": "His thoughtful face lights up into a proud, confident smile; he straightens up and puts his hands on his hips."
+          }
+        }
+      ],
+      "expression": "proud"
+    },
+    {
+      "speaker": "nyasan",
+      "type": "monologue",
+      "line": "急がなくて大丈夫。画面も仕事も、一段ずつ進めばいいんです",
+      "panels": [
+        {
+          "asset": "NY_POSE_NOD",
+          "crop": "face",
+          "fx": [
+            "light"
+          ],
+          "seconds": 1.8,
+          "text": "急がなくて\n大丈夫。",
+          "at": [
+            0.22,
+            0.3
+          ],
+          "to": [
+            0.45,
+            0.45
+          ]
+        },
+        {
+          "asset": "NY_SCENE_PC",
+          "crop": "full",
+          "h": 1.2,
+          "fx": [
+            "light"
+          ],
+          "seconds": 2.8,
+          "text": "画面も仕事も、\n一段ずつ\n進めば\nいいんです",
+          "at": [
+            0.2,
+            0.3
+          ],
+          "to": [
+            0.4,
+            0.45
+          ],
+          "perCol": 7,
+          "solo": true
+        }
+      ],
+      "expression": "joy"
+    }
+  ],
+  "endCard": {
+    "seconds": 2.5,
+    "message": "ゆっくり、いっしょに。",
+    "cta": "チャンネル登録で、社長の成長を見守ってください"
+  },
+  "upload": {
+    "title": "社長、スクロールで目を回す【DX事務所のにゃーさん】",
+    "description": "マウスのホイールを全力で回した社長。画面も社長も目が回ります。\nコツは「ゆっくり、一段ずつ」。",
+    "hashtags": [
+      "#Shorts",
+      "#DX",
+      "#中小企業",
+      "#パソコン初心者"
+    ]
+  }
+}
