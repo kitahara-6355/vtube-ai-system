@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "updated": "2026-11-01",
-  "note": "画像の正本は共有ドライブ「美麗書院_共有データ/(PJ)未整理/追加　にゃーさん」（フォルダID 186RojqQPdYMTTFxe9KKGvGDKgF2_ieOS）。ここは台帳だけ。ローカルでは assets/img/<id>.png に置く（.gitignore 済み）。bg=white は白背景で自動切り抜き可、bg=scene は背景込みの1枚絵。",
+  "note": "画像の正本は共有ドライブ「美麗書院_共有データ/(PJ)未整理/追加　にゃーさん」（フォルダID 186RojqQPdYMTTFxe9KKGvGDKgF2_ieOS）。ここは台帳だけ。2026-11-01 北原さんが同じフォルダに同名の複製（9:59）を入れたが中身は同じで、台帳は10/28の方のIDを指す。フォルダ内の「未整理」（1X0UveX5GupuNdTBWzDu3r4RMqNv7yTLj）は2025年9月の旧設定・旧画像の保管で、台帳には入れない。ローカルでは assets/img/<id>.png に置く（.gitignore 済み）。bg=white は白背景で自動切り抜き可、bg=scene は背景込みの1枚絵。",
   "assets": [
     {
       "id": "NY_EXP_DEFAULT",
@@ -461,6 +461,56 @@
       "note": "社長とにゃーさんがお茶をしながら話す。北原さんが示した色合いの見本（明るい窓の光、白と水色、観葉植物）",
       "driveId": "1RLNzQCsqu4b-wz5wXP7PH9nIM4KF6Mma",
       "driveName": "Characters_talking_in_202604101900.jpeg"
+    },
+    {
+      "id": "NY_POSE_WAVE_SHY",
+      "character": "nyasan",
+      "expression": "shy",
+      "pose": "wave",
+      "framing": "full",
+      "bg": "white",
+      "note": "はにかんで小さく手を振る。右下にGeminiの印",
+      "driveId": "17Clf_XCkmGOaVQctaFJIMmM9uY1_6RaQ",
+      "driveName": "挨拶02はにかんだ笑顔.png"
+    },
+    {
+      "id": "UI_DASHBOARD",
+      "character": "prop",
+      "framing": "screen",
+      "bg": "scene",
+      "safeCrop": [
+        0,
+        0,
+        0.92,
+        0.92
+      ],
+      "note": "PC画面にはめる小物。ダッシュボード（英語表記・架空）。右下にGeminiの印",
+      "driveId": "1m5j8Fz_USGuRoSat1c02QS-xOXbUItAg",
+      "driveName": "UIUX01UIダッシュボード.png"
+    },
+    {
+      "id": "UI_GRAPH",
+      "character": "prop",
+      "framing": "screen",
+      "bg": "scene",
+      "safeCrop": [
+        0,
+        0,
+        0.92,
+        0.92
+      ],
+      "note": "PC画面にはめる小物。棒グラフと折れ線の画面。右下にGeminiの印",
+      "driveId": "1YReS2pfBXtz7mOy4HEgMWIkUJjTUVKAU",
+      "driveName": "UIUX02シンプルなグラフ.png"
+    },
+    {
+      "id": "UI_FLOWCHART",
+      "character": "prop",
+      "framing": "screen",
+      "bg": "scene",
+      "note": "説明用のフローチャート（Start/Decision/Process、英語）",
+      "driveId": "1lHZUFFCANAGZmyAFpJQuW2-GOR_MBLSe",
+      "driveName": "UIUX04フローチャート.png"
     }
   ],
   "unreviewed": [
