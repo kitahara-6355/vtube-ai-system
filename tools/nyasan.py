@@ -398,14 +398,15 @@ def end_card(episode: dict, channel: str) -> Image.Image:
     img = background(False).convert("RGBA")
     d = ImageDraw.Draw(img)
     d.rectangle((0, 0, W, H), fill=(25, 28, 40, 215))
-    d.text((W // 2, 760), card.get("message", "ゆっくり、いっしょに。"), font=font(70), fill=(255, 255, 255), anchor="mm")
-    d.text((W // 2, 900), channel, font=font(56), fill=(255, 205, 110), anchor="mm")
-    d.text((W // 2, 1040), card.get("cta", "チャンネル登録で、社長の成長を見守ってください"), font=font(40), fill=(220, 225, 240), anchor="mm")
+    # 文字も絵も下から480pxより上に収める（ショート・リールの下のUIに隠れないように）
+    d.text((W // 2, 560), card.get("message", "ゆっくり、いっしょに。"), font=font(70), fill=(255, 255, 255), anchor="mm")
+    d.text((W // 2, 690), channel, font=font(56), fill=(255, 205, 110), anchor="mm")
+    d.text((W // 2, 810), card.get("cta", "チャンネル登録で、社長の成長を見守ってください"), font=font(40), fill=(220, 225, 240), anchor="mm")
     nya = IMG_DIR / "NY_EXP_JOY.png"
     if nya.exists():
         c = cutout_white(Image.open(nya))
         c.thumbnail((520, 520))
-        img.alpha_composite(c, ((W - c.width) // 2, 1180))
+        img.alpha_composite(c, ((W - c.width) // 2, 1430 - c.height))
     return img.convert("RGB")
 
 

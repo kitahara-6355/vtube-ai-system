@@ -27,8 +27,10 @@ import nyasan as ny  # noqa: E402
 W, H, FPS = ny.W, ny.H, ny.FPS
 PAGE_TOP, PAGE_BOTTOM, MARGIN, GUTTER = 250, 1690, 36, 22
 # 語り方の型（台本に "style": "monologue"、芯 §5）: ショートの下のUI（下から480〜672px）に文字がかからないよう、
-# コマは y=1280 までにする。心の声は吹き出しにせず、コマの最下に（ ）付きの小さな字幕で出す。
-MONO_BOTTOM, SAFE_RIGHT, SUB_ROOM = 1280, 900, 120
+# コマは y=1380 までにする（字幕の下端が下から540pxより上に収まる）。心の声は吹き出しにせず、コマの最下に（ ）付きの小さな字幕で出す。
+# 上の帯は細く（140px）し、コマを左右いっぱい近くまで広げて絵を大きく見せる（2026-11-01 北原さん「コマが小さく没入感が少ない」）。
+MONO_BOTTOM, SAFE_RIGHT, SUB_ROOM = 1380, 900, 120
+MONO_HEADER, MONO_TOP, MONO_MARGIN = 140, 156, 18
 FADE, TURN = 0.18, 0.35          # コマが現れる秒数、ページをめくる秒数
 ZOOM = 0.035                     # 表示中のコマをゆっくり寄せる量
 INK, PAPER = (20, 20, 20), (255, 255, 255)
@@ -267,14 +269,14 @@ class Page:
     seconds: float = 0.0
 
 
-def layout(panels: list[dict], bottom: int = PAGE_BOTTOM) -> list[tuple[int, int, int, int]]:
+def layout(panels: list[dict], bottom: int = PAGE_BOTTOM, top: int = PAGE_TOP, margin: int = MARGIN) -> list[tuple[int, int, int, int]]:
     """ページ内のコマを上から縦に積む（1ページ2コマまで。横に細いコマは作らない）。高さは "h"（比）で決める。"""
     weights = [p.get("h", 1.0) for p in panels]
-    total_h = bottom - PAGE_TOP - GUTTER * (len(panels) - 1)
-    boxes, y = [], PAGE_TOP
+    total_h = bottom - top - GUTTER * (len(panels) - 1)
+    boxes, y = [], top
     for wgt in weights:
         rh = int(total_h * wgt / sum(weights))
-        boxes.append((MARGIN, y, W - MARGIN, y + rh))
+        boxes.append((margin, y, W - margin, y + rh))
         y += rh + GUTTER
     return boxes
 
@@ -526,7 +528,7 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
         items += [(scene, p) for p in scene["panels"]]
     for chunk in paginate(items):
         page = Page(scene=chunk[0][0], start=t)
-        boxes = layout([p for _, p in chunk], MONO_BOTTOM if mono_style else PAGE_BOTTOM)
+        boxes = layout([p for _, p in chunk], MONO_BOTTOM, MONO_TOP, MONO_MARGIN) if mono_style else layout([p for _, p in chunk])
         for j, ((scene, p), box) in enumerate(zip(chunk, boxes)):
             mono_scene = scene.get("type") == "monologue"
             p, placeholder = resolve(p)
@@ -583,10 +585,20 @@ def header(episode: dict, channel: str, assets: dict | None = None) -> Image.Ima
             room = Image.composite(Image.new("RGB", room.size, (24, 28, 44)), room, fade.point(lambda v: int(v * 0.75)))
             img.paste(room, (0, MONO_BOTTOM))
         else:
-            ny.draw_header(img, episode, channel)
-            ImageDraw.Draw(img).rectangle((0, MONO_BOTTOM + 30, W, H), fill=img.getpixel((W // 2, 4)))
+            ImageDraw.Draw(img).rectangle((0, MONO_BOTTOM + 30, W, H), fill=(25, 28, 40))
+        compact_header(img, episode, channel)
+        return img
     ny.draw_header(img, episode, channel)
     return img
+
+
+def compact_header(img: Image.Image, episode: dict, channel: str) -> None:
+    """独白型の細い帯（高さ MONO_HEADER）。チャンネル名は小さく、タイトルを1行で。"""
+    d = ImageDraw.Draw(img)
+    d.rectangle((0, 0, W, MONO_HEADER), fill=(25, 28, 40))
+    d.text((W // 2, 36), channel, font=ny.font(28), fill=(255, 205, 110), anchor="mm")
+    title = episode["title"]
+    d.text((W // 2, 92), title, font=ny.font(52 if len(title) <= 14 else 42), fill=(255, 255, 255), anchor="mm")
 
 
 def draw_page(page: Page, t: float, base: Image.Image, final: bool = False) -> Image.Image:
@@ -700,6 +712,7 @@ def render(episode_path: Path) -> Path:
          "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "veryfast", "-crf", "20", "-c:a", "aac", "-b:a", "128k", str(video)],
         stdin=subprocess.PIPE)
     finals = [draw_page(p, 0, base, final=True) for p in pages]
+    header_h = MONO_HEADER + 1 if episode.get("style") == "monologue" else 231
     for k in range(int(total * FPS)):
         t = k / FPS
         idx = next((i for i, p in enumerate(pages) if t < p.start + p.seconds), None)
@@ -712,7 +725,7 @@ def render(episode_path: Path) -> Path:
             p = pages[idx]
             frame = draw_page(p, t - p.start, base)
             if idx > 0 and t - p.start < TURN:
-                frame = turn(finals[idx - 1], frame, (t - p.start) / TURN)
+                frame = turn(finals[idx - 1], frame, (t - p.start) / TURN, header_h)
         proc.stdin.write(frame.convert("RGB").tobytes())
     proc.stdin.close()
     proc.wait()
@@ -721,12 +734,12 @@ def render(episode_path: Path) -> Path:
     return video
 
 
-def turn(prev: Image.Image, nxt: Image.Image, k: float) -> Image.Image:
+def turn(prev: Image.Image, nxt: Image.Image, k: float, header_h: int = 231) -> Image.Image:
     """ページをめくる（新しいページが左から入る。日本の漫画の向き）。"""
     k = 1 - (1 - k) ** 2
     img = prev.copy()
     x = int(-W + W * k)
-    top = 0 if nxt.getpixel((5, 5))[:3] != prev.getpixel((5, 5))[:3] else 231  # ヘッダーは動かさない
+    top = 0 if nxt.getpixel((5, 5))[:3] != prev.getpixel((5, 5))[:3] else header_h  # ヘッダーは動かさない
     img.paste(nxt.crop((0, top, W, H)), (x, top))
     if x + W < W:
         ImageDraw.Draw(img).rectangle((x + W, top, x + W + 6, H), fill=(120, 120, 120, 255))
