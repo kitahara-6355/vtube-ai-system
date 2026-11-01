@@ -172,10 +172,29 @@ def frame_region(img: Image.Image, crop, aspect: float, framing: str) -> tuple[f
     return hcx - vw / 2, top, hcx + vw / 2, top + vh
 
 
-def panel_background(panel: dict, size: tuple[int, int], monologue: bool) -> Image.Image:
+def scene_background(asset_id: str, size: tuple[int, int], assets: dict, blur: float = 3.0,
+                     dark: bool = False, focus: tuple[float, float] = (0.5, 0.5), zoom: float = 1.0) -> Image.Image:
+    """背景画像（事務所など）をコマいっぱいに敷く。キャラが前に立つよう、少しぼかして明るくする。
+    心の声のコマは紺をかぶせて暗くし、心の中だと分かるようにする。safeCrop で生成AIの印などを外す。"""
+    img = Image.open(ny.IMG_DIR / f"{asset_id}.png").convert("RGB")
+    sx0, sy0, sx1, sy1 = assets.get(asset_id, {}).get("safeCrop", [0, 0, 1, 1])
+    img = img.crop((int(sx0 * img.width), int(sy0 * img.height), int(sx1 * img.width), int(sy1 * img.height)))
+    w, h = size
+    k = max(w / img.width, h / img.height) * zoom
+    img = img.resize((max(w, int(img.width * k)), max(h, int(img.height * k))), Image.LANCZOS)
+    x, y = int((img.width - w) * focus[0]), int((img.height - h) * focus[1])
+    img = img.crop((x, y, x + w, y + h)).filter(ImageFilter.GaussianBlur(blur))
+    veil = Image.new("RGB", size, (28, 32, 58) if dark else (255, 255, 255))
+    return Image.blend(img, veil, 0.55 if dark else 0.3)
+
+
+def panel_background(panel: dict, size: tuple[int, int], monologue: bool, assets: dict | None = None) -> Image.Image:
     fx = panel.get("fx", [])
     if "flash" in fx:
         bg = Image.new("RGB", size, (255, 246, 206))
+    elif panel.get("bg") and panel["bg"] != "@none":
+        bg = scene_background(panel["bg"], size, assets or {}, dark=monologue and "light" not in fx,
+                              focus=tuple(panel.get("bgAt", (0.5, 0.5))), zoom=1.5)
     elif "tone" in fx or monologue:
         bg = tone(size, dark=monologue and "light" not in fx)
     else:
@@ -198,7 +217,7 @@ def panel_content(panel: dict, size: tuple[int, int], assets: dict, monologue: b
         if "lines" in panel.get("fx", []):
             img.alpha_composite(speed_lines((pw, ph), dense=60, seed=7))
         return img.convert("RGB"), (0.95, 0.5)
-    bg = panel_background(panel, (pw, ph), monologue)
+    bg = panel_background(panel, (pw, ph), monologue, assets)
     ax0, ay0, ax1, ay1 = int(art[0] * pw), int(art[1] * ph), int(art[2] * pw), int(art[3] * ph)
     aw, ah = ax1 - ax0, ay1 - ay0
     img = source(panel["asset"], assets)
@@ -498,6 +517,7 @@ def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None) -> 
 def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
     assets = {a["id"]: a for a in assets_list}
     mono_style = episode.get("style") == "monologue"
+    items_seen: list = []
     pages, t = [], 0.0
     items = []
     for scene in episode["scenes"]:
@@ -513,6 +533,11 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
             if not p["asset"].startswith("@") and p["asset"] not in assets and not (ny.IMG_DIR / f"{p['asset']}.png").exists():
                 sys.exit(f"素材 {p['asset']} が assets/img か台帳にありません。")
             mono = p.get("monologue", mono_scene)
+            if episode.get("background") and "bg" not in p:
+                # 台本の "background" を全コマの背景にする。同じ所ばかり映らないよう、コマごとに見る場所をずらす
+                spots = [(0.15, 0.55), (0.85, 0.6), (0.5, 0.4), (0.3, 0.8), (0.7, 0.3)]
+                p = dict(p, bg=episode["background"], bgAt=p.get("bgAt", spots[len(items_seen) % len(spots)]))
+            items_seen.append(p)
             size = (box[2] - box[0], box[3] - box[1])
             pl = Placed(p, box, t, float(p.get("seconds", 1.6)), monologue=mono,
                         key=f"p{len(pages) + 1:02d}-{j + 1}", placeholder=placeholder, scene=scene)
@@ -547,13 +572,20 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
     return pages
 
 
-def header(episode: dict, channel: str) -> Image.Image:
+def header(episode: dict, channel: str, assets: dict | None = None) -> Image.Image:
     img = Image.new("RGBA", (W, H), PAPER + (255,))
-    ny.draw_header(img, episode, channel)
     if episode.get("style") == "monologue":
-        # コマより下はショートのUIがかかる場所。上の帯と同じ色でしめる
-        top = img.getpixel((W // 2, 4))
-        ImageDraw.Draw(img).rectangle((0, MONO_BOTTOM + 30, W, H), fill=top)
+        # コマより下はショートのUI（タイトル・ボタン）がかかる場所なので文字は置かない。
+        # 背景があれば事務所の絵を敷いて空きに見えないようにし、なければ上の帯の色でしめる
+        if episode.get("background"):
+            room = scene_background(episode["background"], (W, H - MONO_BOTTOM), assets or {}, blur=6)
+            fade = Image.linear_gradient("L").resize(room.size)  # 下ほど暗く（UIの白文字が読めるように）
+            room = Image.composite(Image.new("RGB", room.size, (24, 28, 44)), room, fade.point(lambda v: int(v * 0.75)))
+            img.paste(room, (0, MONO_BOTTOM))
+        else:
+            ny.draw_header(img, episode, channel)
+            ImageDraw.Draw(img).rectangle((0, MONO_BOTTOM + 30, W, H), fill=img.getpixel((W // 2, 4)))
+    ny.draw_header(img, episode, channel)
     return img
 
 
@@ -622,7 +654,7 @@ def sheet(episode_path: Path) -> Path:
     episode = ny.load_json(episode_path)
     characters = ny.load_json(ny.CHARACTERS)
     pages = build(episode, characters, ny.load_json(ny.LIBRARY)["assets"])
-    base = header(episode, characters["channel"]["name"])
+    base = header(episode, characters["channel"]["name"], {a["id"]: a for a in ny.load_json(ny.LIBRARY)["assets"]})
     tw, th = 480, 853
     thumbs = [label_page(draw_page(p, 0, base, final=True), p).convert("RGB").resize((tw, th), Image.LANCZOS) for p in pages]
     out = ny.OUT_DIR / episode["id"] / "manga" / "コマ一覧.jpg"
@@ -655,7 +687,7 @@ def render(episode_path: Path) -> Path:
     characters = ny.load_json(ny.CHARACTERS)
     channel = characters["channel"]["name"]
     pages = build(episode, characters, ny.load_json(ny.LIBRARY)["assets"])
-    base = header(episode, channel)
+    base = header(episode, channel, {a["id"]: a for a in ny.load_json(ny.LIBRARY)["assets"]})
     end = ny.end_card(episode, channel).convert("RGBA")
     end_sec = float(episode.get("endCard", {}).get("seconds", 2.5))
     total = sum(p.seconds for p in pages) + end_sec

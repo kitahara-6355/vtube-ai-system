@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "updated": "2026-10-28",
+  "updated": "2026-11-01",
   "note": "画像の正本は共有ドライブ「美麗書院_共有データ/(PJ)未整理/追加　にゃーさん」（フォルダID 186RojqQPdYMTTFxe9KKGvGDKgF2_ieOS）。ここは台帳だけ。ローカルでは assets/img/<id>.png に置く（.gitignore 済み）。bg=white は白背景で自動切り抜き可、bg=scene は背景込みの1枚絵。",
   "assets": [
     {
@@ -405,6 +405,62 @@
       "driveId": "1NxH2ChmUhR-_nBYzHmoB7ADYQiPjvuMd",
       "driveName": "挨拶01名刺を手渡し.jfif",
       "note": "(PJ)未整理/追加　個人興味/OpenClow PJ/YochiYochi PJ/3_Creative_Assets/【フェーズ2】/ステップ4 から。汗をかいて名刺を両手で持つ。胸のロゴ表記が崩れている"
+    },
+    {
+      "id": "BG_OFFICE",
+      "character": "background",
+      "framing": "scene",
+      "bg": "scene",
+      "safeCrop": [
+        0,
+        0,
+        0.92,
+        0.92
+      ],
+      "note": "事務所の全景（窓・デスク・観葉植物）。右下にGeminiの印があるので safeCrop で外す",
+      "driveId": "1WLLu1PpXbMTUn71kvDEuJWLp62X_bTES",
+      "driveName": "背景01オフィス.png"
+    },
+    {
+      "id": "BG_DESK",
+      "character": "background",
+      "framing": "scene",
+      "bg": "scene",
+      "safeCrop": [
+        0,
+        0,
+        0.92,
+        0.92
+      ],
+      "note": "デスク周り。モニターに実在メーカーのロゴがあるので、ぼかして使うか作り直す",
+      "driveId": "1FrYcAGqWuimtoakP7BWAtWhLvfB-_ZBA",
+      "driveName": "背景02デスク周り.png"
+    },
+    {
+      "id": "BG_MEETING",
+      "character": "background",
+      "framing": "scene",
+      "bg": "scene",
+      "safeCrop": [
+        0,
+        0,
+        0.92,
+        0.92
+      ],
+      "note": "会議室",
+      "driveId": "1JQqqAH2IpE-AWPA0CfKhGr-gw05mgCB7",
+      "driveName": "背景03会議室.png"
+    },
+    {
+      "id": "DUO_TEA_TALK",
+      "character": "duo",
+      "expression": "joy",
+      "pose": "tea_talk",
+      "framing": "scene",
+      "bg": "scene",
+      "note": "社長とにゃーさんがお茶をしながら話す。北原さんが示した色合いの見本（明るい窓の光、白と水色、観葉植物）",
+      "driveId": "1RLNzQCsqu4b-wz5wXP7PH9nIM4KF6Mma",
+      "driveName": "Characters_talking_in_202604101900.jpeg"
     }
   ],
   "unreviewed": [
