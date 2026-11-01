@@ -511,6 +511,15 @@
       "note": "説明用のフローチャート（Start/Decision/Process、英語）",
       "driveId": "1lHZUFFCANAGZmyAFpJQuW2-GOR_MBLSe",
       "driveName": "UIUX04フローチャート.png"
+    },
+    {
+      "id": "BG_OFFICE_WIDE",
+      "character": "background",
+      "framing": "scene",
+      "bg": "scene",
+      "note": "事務所の全景（お茶の絵の絵柄でそろえた背景A、北原さんが2026-11-01にGeminiで生成）。左に工程表とヘルメット棚、奥に窓と机2つ、右手前に打合せテーブル。ノートPCの蓋のロゴ風の丸はローカルで消している（assets/img を取り直したら消し直す）。Geminiの印はなし",
+      "driveId": "1nNGK3ssb6CBJfVSuqp99VagpvY4OUCy_",
+      "driveName": "Gemini_Generated_Image_8cpreq8cpreq8cpr.jfif"
     }
   ],
   "unreviewed": [
