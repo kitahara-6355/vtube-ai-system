@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "updated": "2026-11-01",
+  "updated": "2026-11-20",
   "note": "画像の正本は共有ドライブ「美麗書院_共有データ/(PJ)未整理/追加　にゃーさん」（フォルダID 186RojqQPdYMTTFxe9KKGvGDKgF2_ieOS）。ここは台帳だけ。2026-11-01 北原さんが同じフォルダに同名の複製（9:59）を入れたが中身は同じで、台帳は10/28の方のIDを指す。フォルダ内の「未整理」（1X0UveX5GupuNdTBWzDu3r4RMqNv7yTLj）は2025年9月の旧設定・旧画像の保管で、台帳には入れない。ローカルでは assets/img/<id>.png に置く（.gitignore 済み）。bg=white は白背景で自動切り抜き可、bg=scene は背景込みの1枚絵。",
   "assets": [
     {
@@ -520,6 +520,61 @@
       "note": "事務所の全景（お茶の絵の絵柄でそろえた背景A、北原さんが2026-11-01にGeminiで生成）。左に工程表とヘルメット棚、奥に窓と机2つ、右手前に打合せテーブル。ノートPCの蓋のロゴ風の丸はローカルで消している（assets/img を取り直したら消し直す）。Geminiの印はなし",
       "driveId": "1nNGK3ssb6CBJfVSuqp99VagpvY4OUCy_",
       "driveName": "Gemini_Generated_Image_8cpreq8cpreq8cpr.jfif"
+    },
+    {
+      "id": "SH_POSE_MOUSE_SOAP",
+      "character": "shacho",
+      "expression": "worried",
+      "pose": "mouse_soap",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1__54uox_oXmTQSzYYcwOWpNxo1oewOKL",
+      "driveName": "00_受付（Gemini 法人・2026-11-20 合格）",
+      "note": "マウスを石鹸のように両手で包む（IMG_03）。絵づくり台帳（Gemini）で合格"
+    },
+    {
+      "id": "SH_EXP_DIZZY",
+      "character": "shacho",
+      "expression": "dizzy",
+      "pose": "stand",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "1k2kkMCVmIktw6X_N_N69Z3id2H4wBgbu",
+      "driveName": "00_受付（Gemini 法人・2026-11-20 合格）",
+      "note": "目がぐるぐる・星とひよこ（IMG_02）。絵づくり台帳（Gemini）で合格"
+    },
+    {
+      "id": "SH_POSE_WHEEL_SPIN",
+      "character": "shacho",
+      "expression": "panic",
+      "pose": "wheel_spin",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1wpRanIJsKZEU3EEPq_9BxblvVG1iNC0c",
+      "driveName": "00_受付（Gemini 法人・2026-11-20 合格）",
+      "note": "人差し指でホイールを猛烈に回す（IMG_04）。絵づくり台帳（Gemini）で合格"
+    },
+    {
+      "id": "SH_POSE_MOUSE_SHAKE",
+      "character": "shacho",
+      "expression": "panic",
+      "pose": "mouse_shake",
+      "framing": "full",
+      "bg": "white",
+      "driveId": "18Fj7lReVJbisuopK7Yogx2PnR5r1KQSO",
+      "driveName": "00_受付（Gemini 法人・2026-11-20 合格）",
+      "note": "マウスを振り回す（IMG_05）。絵づくり台帳（Gemini）で合格"
+    },
+    {
+      "id": "SH_POSE_MOUSE_WIGGLE",
+      "character": "shacho",
+      "expression": "worried",
+      "pose": "mouse_wiggle",
+      "framing": "bust",
+      "bg": "white",
+      "driveId": "1w5wPll52eYidcvgFKaY9Y_hQ-FOhMOuH",
+      "driveName": "00_受付（Gemini 法人・2026-11-20 合格）",
+      "note": "机のマウスを小さく左右に動かす（IMG_06）。絵づくり台帳（Gemini）で合格"
     }
   ],
   "unreviewed": [
