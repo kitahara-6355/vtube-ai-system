@@ -195,7 +195,7 @@
         {
           "asset": "SH_POSE_PC_CONFUSED",
           "crop": "full",
-          "h": 0.8,
+          "h": 1.0,
           "speaker": "shacho",
           "seconds": 1.3,
           "sfx": {
@@ -213,7 +213,12 @@
               "SH_MASTER_2D",
               "SH_POSE_PC_CONFUSED"
             ],
-            "crop": "bust",
+            "crop": [
+              0.0,
+              0.02,
+              1.0,
+              0.98
+            ],
             "desc": "椅子に座った社長が、机の上のマウスを右手でそっと小さく左右に動かしている。真剣で少し不安げな顔。上半身。机の天板とマウスだけ描き、モニターは描かない。"
           }
         }
