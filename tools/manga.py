@@ -33,7 +33,7 @@ MONO_BOTTOM, SAFE_RIGHT, SUB_ROOM = 1380, 900, 120
 MONO_HEADER, MONO_TOP, MONO_MARGIN = 140, 156, 18
 FADE, TURN = 0.18, 0.35          # コマが現れる秒数、ページをめくる秒数
 ZOOM = 0.035                     # 表示中のコマをゆっくり寄せる量
-HOLD_ZOOM_RATE = ZOOM / 2.0      # 止まって見える所の寄せの標準（1秒あたり）。2026-11-21 北原さん: EP001 22〜23秒（2秒のコマに3.5%）がしっくり
+HOLD_ZOOM_RATE = ZOOM / 2.0      # コマの寄せの標準（1秒あたり、全コマ同じ速さ）。2026-11-21 北原さん: EP001 22〜23秒（2秒のコマに3.5%）がしっくり
 INK, PAPER = (20, 20, 20), (255, 255, 255)
 VERT_FONT = "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"
 ZEN = str.maketrans("0123456789!?", "０１２３４５６７８９！？")
@@ -649,17 +649,19 @@ def draw_page(page: Page, t: float, base: Image.Image, final: bool = False) -> I
         x0, y0, x1, y1 = pl.box
         w, h = x1 - x0, y1 - y0
         progress = min(1.0, max(0.0, local / pl.seconds)) if not final else 1.0
-        z = 1 + ZOOM * progress
+        # 2026-11-21 北原さん: 寄せは止めの所だけでなく、コマの頭から同じ速さで入れると続きとして自然
+        z = 1 + HOLD_ZOOM_RATE * (local if not final else pl.seconds)
         content = pl.content
         if pl.frames:
             content = pl.frames[min(len(pl.frames) - 1, max(0, int(local * FPS)))] if not final else pl.frames[-1]
         cw, ch = content.size
-        vw, vh = w * (1 + ZOOM) / z, h * (1 + ZOOM) / z
+        vw, vh = cw / z, ch / z
         ox, oy = (cw - vw) / 2, (ch - vh) / 2
         if "shake" in pl.panel.get("fx", []) and 0 <= local < 0.6 and not final:
             ox += math.sin(local * 70) * 9
             oy += math.cos(local * 55) * 6
-        view = content.crop((int(ox), int(oy), int(ox + vw), int(oy + vh))).resize((w, h), Image.BILINEAR)
+        # 小数の位置で切り出して、ゆっくりの寄せでもガタつかせない
+        view = content.transform((w, h), Image.AFFINE, (vw / w, 0, ox, 0, vh / h, oy), resample=Image.BILINEAR)
         alpha = 1.0 if final else min(1.0, local / FADE)
         if alpha < 1:
             under = img.crop((x0, y0, x1, y1)).convert("RGB")
