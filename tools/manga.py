@@ -12,6 +12,7 @@ Flow の動画（第3段階）に1コマずつ置き換える。外部APIは呼�
 from __future__ import annotations
 
 import argparse
+import os
 import math
 import subprocess
 import sys
@@ -33,6 +34,7 @@ MONO_BOTTOM, SAFE_RIGHT, SUB_ROOM = 1380, 900, 120
 MONO_HEADER, MONO_TOP, MONO_MARGIN = 140, 156, 18
 FADE, TURN = 0.18, 0.35          # コマが現れる秒数、ページをめくる秒数
 ZOOM = 0.035                     # 表示中のコマをゆっくり寄せる量
+HOLD_ZOOM_RATE = ZOOM / 2.0      # コマの寄せの標準（1秒あたり、全コマ同じ速さ）。2026-11-21 北原さん: EP001 22〜23秒（2秒のコマに3.5%）がしっくり
 INK, PAPER = (20, 20, 20), (255, 255, 255)
 VERT_FONT = "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"
 ZEN = str.maketrans("0123456789!?", "０１２３４５６７８９！？")
@@ -472,12 +474,13 @@ def subtitle(overlay: Image.Image, box, text: str, color: tuple) -> None:
         d.text((cx, by0 + 14 + lh * i + lh / 2), s, font=f, fill=(30, 30, 40), anchor="mm")
 
 
-def caption(overlay: Image.Image, box, text: str) -> None:
-    """状況キャプション（「月曜、9時。」など）。場面が変わるコマの左上に小さく出す。"""
+def caption(overlay: Image.Image, box, text: str, at: str = "tl") -> None:
+    """状況キャプション（「月曜、9時。」など）。場面が変わるコマの隅に小さく出す（at: tl/tr/bl/br）。"""
     d = ImageDraw.Draw(overlay)
     f = ny.font(38)
-    x, y = box[0] + 22, box[1] + 22
     w = f.getlength(text) + 36
+    x = box[0] + 22 if at[1] == "l" else box[2] - 22 - w
+    y = box[1] + 22 if at[0] == "t" else box[3] - 22 - 60
     d.rectangle((x, y, x + w, y + 60), fill=(20, 20, 20, 225))
     d.text((x + 18, y + 30), text, font=f, fill=(255, 255, 255), anchor="lm")
 
@@ -505,15 +508,50 @@ def place_balloon(panel: dict, box) -> tuple[tuple[float, float, float, float], 
     return art, center
 
 
-def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None) -> list[Image.Image]:
-    """Flow の動画をコマの大きさに切り抜いて、表示する秒数ぶんのコマにする。音は使わない。"""
-    a, b = rng or (0.0, seconds)
+def _seg(clip: Path, size, a: float, b: float, speed: float = 1.0) -> list[Image.Image]:
     w, h = size
     r = subprocess.run(["ffmpeg", "-loglevel", "error", "-ss", f"{a}", "-to", f"{b}", "-i", str(clip),
-                        "-vf", f"setpts=PTS*{seconds / (b - a)},fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}",
+                        "-vf", f"setpts=PTS/{speed},fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}",
                         "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True)
     n = len(r.stdout) // (w * h * 3)
-    return [Image.frombytes("RGB", (w, h), r.stdout[i * w * h * 3:(i + 1) * w * h * 3]) for i in range(n)]
+    return [Image.frombytes("RGB", (w, h), r.stdout[k * w * h * 3:(k + 1) * w * h * 3]) for k in range(n)]
+
+
+def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None, flow: dict | None = None) -> list[Image.Image]:
+    """Flow の動画をコマの大きさに切り抜いて、表示する秒数ぶんのコマにする。音は使わない。
+    flow.speed: 動きをその速さで流す。残りは flow.tail（動きの後の続きを等速で流す＝動く止め）、
+    flow.pingpong [x, y]（その区間を行き来させる）、どちらもなければ最後の絵で止める。"""
+    flow = flow or {}
+    a, b = rng or (0.0, seconds)
+    need = max(1, round(seconds * FPS))
+    if not flow.get("speed"):
+        return _seg(clip, size, a, b, (b - a) / seconds)[:need]
+    frames = _seg(clip, size, a, b, flow["speed"])
+    if len(frames) < need and flow.get("tail"):
+        frames += _seg(clip, size, b, b + (need - len(frames)) / FPS + 0.2)
+    if len(frames) < need and flow.get("pingpong"):
+        x, y = flow["pingpong"]
+        loop = _seg(clip, size, x, y)
+        loop = loop + loop[::-1]
+        while len(frames) < need and loop:
+            frames += loop
+    hold = need - len(frames)
+    if hold > 0:
+        # 動きのあとは最後の絵で止め、コマの中でゆっくり寄せる（2026-11-21 北原さん: 間延びはズームアップで）
+        last, z = frames[-1], flow.get("holdZoom", 0.0)
+        if z is True:  # 標準: コマ全体の寄せと合わせて HOLD_ZOOM_RATE になるよう、止めの間だけ足す
+            z = max(0.0, HOLD_ZOOM_RATE - ZOOM / seconds) * hold / FPS
+        z = float(z)
+        w, h = last.size
+        cx, cy = flow.get("zoomAt", (0.5, 0.38))
+        for k in range(1, hold + 1):
+            # 2026-11-21 北原さん: 寄せていると分からないくらい小さく、一定の速さで。小数の位置で寄せてガタつかせない
+            sc = 1 + z * k / hold
+            cw, ch = w / sc, h / sc
+            x0 = min(max(cx * w - cw / 2, 0), w - cw)
+            y0 = min(max(cy * h - ch / 2, 0), h - ch)
+            frames.append(last.transform((w, h), Image.AFFINE, (1 / sc, 0, x0, 0, 1 / sc, y0), resample=Image.BICUBIC))
+    return frames[:need]
 
 
 def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
@@ -550,7 +588,7 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
             clip = ny.CLIP_DIR / episode["id"] / f"{pl.key}.mp4"
             if p.get("flow") and clip.exists():
                 if p["flow"].get("approved"):
-                    pl.frames = clip_frames(clip, pl.content.size, pl.seconds, p["flow"].get("range"))
+                    pl.frames = clip_frames(clip, pl.content.size, pl.seconds, p["flow"].get("range"), p["flow"])
                 else:
                     print(f"  {pl.key}: Flow の動画は未承認なので絵のまま（台本の flow に \"approved\": true で採用）")
             pl.overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
@@ -562,7 +600,7 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
                 who = characters["characters"][p.get("speaker", scene["speaker"])]
                 subtitle(pl.overlay, box, p["text"], ny.hex_rgb(who["telopColor"]))
             if p.get("caption"):
-                caption(pl.overlay, box, p["caption"])
+                caption(pl.overlay, box, p["caption"], p.get("captionAt", "tl"))
             if placeholder:
                 d = ImageDraw.Draw(pl.overlay)
                 d.rounded_rectangle((box[0] + 14, box[3] - 62, box[0] + 150, box[3] - 14), radius=10, fill=(255, 236, 180, 235))
@@ -613,17 +651,19 @@ def draw_page(page: Page, t: float, base: Image.Image, final: bool = False) -> I
         x0, y0, x1, y1 = pl.box
         w, h = x1 - x0, y1 - y0
         progress = min(1.0, max(0.0, local / pl.seconds)) if not final else 1.0
-        z = 1 + ZOOM * progress
+        # 2026-11-21 北原さん: 寄せは止めの所だけでなく、コマの頭から同じ速さで入れると続きとして自然
+        z = 1 + HOLD_ZOOM_RATE * (local if not final else pl.seconds)
         content = pl.content
         if pl.frames:
             content = pl.frames[min(len(pl.frames) - 1, max(0, int(local * FPS)))] if not final else pl.frames[-1]
         cw, ch = content.size
-        vw, vh = w * (1 + ZOOM) / z, h * (1 + ZOOM) / z
+        vw, vh = cw / z, ch / z
         ox, oy = (cw - vw) / 2, (ch - vh) / 2
         if "shake" in pl.panel.get("fx", []) and 0 <= local < 0.6 and not final:
             ox += math.sin(local * 70) * 9
             oy += math.cos(local * 55) * 6
-        view = content.crop((int(ox), int(oy), int(ox + vw), int(oy + vh))).resize((w, h), Image.BILINEAR)
+        # 小数の位置で切り出して、ゆっくりの寄せでもガタつかせない
+        view = content.transform((w, h), Image.AFFINE, (vw / w, 0, ox, 0, vh / h, oy), resample=Image.BILINEAR)
         alpha = 1.0 if final else min(1.0, local / FADE)
         if alpha < 1:
             under = img.crop((x0, y0, x1, y1)).convert("RGB")
@@ -695,7 +735,9 @@ def sheet(episode_path: Path) -> Path:
 
 
 def render(episode_path: Path) -> Path:
+    global TURN_STYLE
     episode = ny.load_json(episode_path)
+    TURN_STYLE = os.environ.get("MANGA_TURN") or episode.get("turn", TURN_STYLE)
     characters = ny.load_json(ny.CHARACTERS)
     channel = characters["channel"]["name"]
     pages = build(episode, characters, ny.load_json(ny.LIBRARY)["assets"])
@@ -734,12 +776,31 @@ def render(episode_path: Path) -> Path:
     return video
 
 
+TURN_STYLE = "slide"  # ページの切り替え: slide（左から送る）/ fade（重ねて入れ替え）/ scroll（下から上へ送る）/ flash（白く光って切り替え）
+
+
 def turn(prev: Image.Image, nxt: Image.Image, k: float, header_h: int = 231) -> Image.Image:
-    """ページをめくる（新しいページが左から入る。日本の漫画の向き）。"""
+    """ページの切り替え。TURN_STYLE で形を選ぶ（2026-11-21 北原さん: 左からの送りに違和感、別の形を比べる）。"""
+    top = 0 if nxt.getpixel((5, 5))[:3] != prev.getpixel((5, 5))[:3] else header_h  # ヘッダーは動かさない
+    if TURN_STYLE == "fade":
+        img = prev.copy()
+        img.paste(Image.blend(prev.crop((0, top, W, H)), nxt.crop((0, top, W, H)), k), (0, top))
+        return img
+    if TURN_STYLE == "flash":
+        img = (prev if k < 0.5 else nxt).copy()
+        a = 1 - abs(k - 0.5) * 2  # 真ん中でいちばん白い
+        img.paste(Image.blend(img.crop((0, top, W, H)), Image.new(img.mode, (W, H - top), (255, 255, 255)), a * 0.9), (0, top))
+        return img
     k = 1 - (1 - k) ** 2
     img = prev.copy()
+    if TURN_STYLE == "scroll":
+        y = int(H - (H - top) * k)
+        img.paste(prev.crop((0, top, W, H)), (0, y - (H - top)))
+        img.paste(nxt.crop((0, top, W, H)), (0, y))
+        if top:
+            img.paste(prev.crop((0, 0, W, top)), (0, 0))
+        return img
     x = int(-W + W * k)
-    top = 0 if nxt.getpixel((5, 5))[:3] != prev.getpixel((5, 5))[:3] else header_h  # ヘッダーは動かさない
     img.paste(nxt.crop((0, top, W, H)), (x, top))
     if x + W < W:
         ImageDraw.Draw(img).rectangle((x + W, top, x + W + 6, H), fill=(120, 120, 120, 255))
