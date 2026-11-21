@@ -535,17 +535,16 @@ def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None, flo
     hold = need - len(frames)
     if hold > 0:
         # 動きのあとは最後の絵で止め、コマの中でゆっくり寄せる（2026-11-21 北原さん: 間延びはズームアップで）
-        last, z = frames[-1], float(flow.get("holdZoom", 0.12))
+        last, z = frames[-1], float(flow.get("holdZoom", 0.0))
         w, h = last.size
         cx, cy = flow.get("zoomAt", (0.5, 0.38))
         for k in range(1, hold + 1):
-            e = k / hold
-            e = 1 - (1 - e) ** 2           # はじめ早く、だんだんゆっくり
-            sc = 1 + z * e
+            # 2026-11-21 北原さん: 寄せていると分からないくらい小さく、一定の速さで。小数の位置で寄せてガタつかせない
+            sc = 1 + z * k / hold
             cw, ch = w / sc, h / sc
             x0 = min(max(cx * w - cw / 2, 0), w - cw)
             y0 = min(max(cy * h - ch / 2, 0), h - ch)
-            frames.append(last.crop((round(x0), round(y0), round(x0 + cw), round(y0 + ch))).resize((w, h), Image.LANCZOS))
+            frames.append(last.transform((w, h), Image.AFFINE, (1 / sc, 0, x0, 0, 1 / sc, y0), resample=Image.BICUBIC))
     return frames[:need]
 
 
