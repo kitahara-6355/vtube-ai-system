@@ -124,3 +124,24 @@ def test_manga_monologue_style_keeps_ui_zone_clear():
     manga.subtitle(overlay, boxes[-1], "社長、マウスを両手で包んでる…\n石鹸じゃないです…", (224, 122, 95))
     x0, y0, x1, y1 = overlay.getbbox()
     assert x1 <= manga.SAFE_RIGHT and boxes[-1][1] < y0 and y1 <= boxes[-1][3]
+
+
+def test_sheet_round_trip_changes_only_numbers_and_text():
+    import copy
+    import sheet
+    ep = json.loads((ROOT / "episodes" / "EP001_mouse.json").read_text(encoding="utf-8"))
+    rows = sheet.to_rows(ep)
+    assert sheet.apply_rows(copy.deepcopy(ep), rows) == []  # そのまま戻せば変化なし
+    head = rows[0]
+    rows[1][head.index("秒")] = "2.5"
+    rows[1][head.index("場面の文字の位置")] = "tl"
+    rows[2][head.index("動画の速さ")] = "1.2"  # 動画の無いコマに速さを入れると flow ができる
+    rows[-2][1] = "scroll"
+    new = copy.deepcopy(ep)
+    changes = sheet.apply_rows(new, rows)
+    assert len(changes) == 4
+    assert new["scenes"][0]["panels"][0]["seconds"] == 2.5
+    assert new["scenes"][0]["panels"][0]["captionAt"] == "tl"
+    assert new["scenes"][1]["panels"][0]["flow"]["speed"] == 1.2
+    assert new["turn"] == "scroll"
+    assert "\n" in new["scenes"][1]["panels"][0]["text"]  # 改行は \n で往復する
