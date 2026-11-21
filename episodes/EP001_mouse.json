@@ -170,7 +170,7 @@
               3.2
             ],
             "speed": 1.5,
-            "holdZoom": 0.03
+            "holdZoom": 0.06
           }
         }
       ]
@@ -283,7 +283,7 @@
               2.4
             ],
             "speed": 1.5,
-            "holdZoom": 0.03
+            "holdZoom": 0.06
           }
         }
       ]
@@ -310,7 +310,7 @@
               4.0
             ],
             "speed": 1.5,
-            "holdZoom": 0.03
+            "holdZoom": 0.06
           }
         },
         {
