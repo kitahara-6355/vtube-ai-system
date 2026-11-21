@@ -505,15 +505,48 @@ def place_balloon(panel: dict, box) -> tuple[tuple[float, float, float, float], 
     return art, center
 
 
-def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None) -> list[Image.Image]:
-    """Flow の動画をコマの大きさに切り抜いて、表示する秒数ぶんのコマにする。音は使わない。"""
-    a, b = rng or (0.0, seconds)
+def _seg(clip: Path, size, a: float, b: float, speed: float = 1.0) -> list[Image.Image]:
     w, h = size
     r = subprocess.run(["ffmpeg", "-loglevel", "error", "-ss", f"{a}", "-to", f"{b}", "-i", str(clip),
-                        "-vf", f"setpts=PTS*{seconds / (b - a)},fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}",
+                        "-vf", f"setpts=PTS/{speed},fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}",
                         "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True)
     n = len(r.stdout) // (w * h * 3)
-    return [Image.frombytes("RGB", (w, h), r.stdout[i * w * h * 3:(i + 1) * w * h * 3]) for i in range(n)]
+    return [Image.frombytes("RGB", (w, h), r.stdout[k * w * h * 3:(k + 1) * w * h * 3]) for k in range(n)]
+
+
+def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None, flow: dict | None = None) -> list[Image.Image]:
+    """Flow の動画をコマの大きさに切り抜いて、表示する秒数ぶんのコマにする。音は使わない。
+    flow.speed: 動きをその速さで流す。残りは flow.tail（動きの後の続きを等速で流す＝動く止め）、
+    flow.pingpong [x, y]（その区間を行き来させる）、どちらもなければ最後の絵で止める。"""
+    flow = flow or {}
+    a, b = rng or (0.0, seconds)
+    need = max(1, round(seconds * FPS))
+    if not flow.get("speed"):
+        return _seg(clip, size, a, b, (b - a) / seconds)[:need]
+    frames = _seg(clip, size, a, b, flow["speed"])
+    if len(frames) < need and flow.get("tail"):
+        frames += _seg(clip, size, b, b + (need - len(frames)) / FPS + 0.2)
+    if len(frames) < need and flow.get("pingpong"):
+        x, y = flow["pingpong"]
+        loop = _seg(clip, size, x, y)
+        loop = loop + loop[::-1]
+        while len(frames) < need and loop:
+            frames += loop
+    hold = need - len(frames)
+    if hold > 0:
+        # 動きのあとは最後の絵で止め、コマの中でゆっくり寄せる（2026-11-21 北原さん: 間延びはズームアップで）
+        last, z = frames[-1], float(flow.get("holdZoom", 0.12))
+        w, h = last.size
+        cx, cy = flow.get("zoomAt", (0.5, 0.38))
+        for k in range(1, hold + 1):
+            e = k / hold
+            e = 1 - (1 - e) ** 2           # はじめ早く、だんだんゆっくり
+            sc = 1 + z * e
+            cw, ch = w / sc, h / sc
+            x0 = min(max(cx * w - cw / 2, 0), w - cw)
+            y0 = min(max(cy * h - ch / 2, 0), h - ch)
+            frames.append(last.crop((round(x0), round(y0), round(x0 + cw), round(y0 + ch))).resize((w, h), Image.LANCZOS))
+    return frames[:need]
 
 
 def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
@@ -550,7 +583,7 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
             clip = ny.CLIP_DIR / episode["id"] / f"{pl.key}.mp4"
             if p.get("flow") and clip.exists():
                 if p["flow"].get("approved"):
-                    pl.frames = clip_frames(clip, pl.content.size, pl.seconds, p["flow"].get("range"))
+                    pl.frames = clip_frames(clip, pl.content.size, pl.seconds, p["flow"].get("range"), p["flow"])
                 else:
                     print(f"  {pl.key}: Flow の動画は未承認なので絵のまま（台本の flow に \"approved\": true で採用）")
             pl.overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))

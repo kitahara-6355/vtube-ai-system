@@ -4,7 +4,7 @@
   "story": "STORY-001 マウスとの戦い（クリエイティブ資産 v3.2）",
   "funnelStage": 1,
   "style": "monologue",
-  "background": "BG_OFFICE",
+  "background": "BG_OFFICE_WIDE",
   "appeal": {
     "shacho": "現場ではプロなのに、PCの前だと赤ちゃん",
     "nyasan": "表はやさしいのに、心の声は辛口。そのギャップがいい"
@@ -33,7 +33,7 @@
           "fx": [
             "lines"
           ],
-          "seconds": 2.2,
+          "seconds": 3.0,
           "caption": "月曜、朝9時。",
           "sfx": {
             "text": "ぎゅっ",
@@ -51,6 +51,14 @@
             ],
             "crop": "bust",
             "desc": "椅子に座った社長が、パソコンのマウスを石鹸のように両手で包み込み、大事そうに胸の前で持っている。困り眉で真剣な顔。上半身中心。机とモニターは描かない。"
+          },
+          "flow": {
+            "approved": true,
+            "range": [
+              0.3,
+              2.4
+            ],
+            "speed": 1.5
           }
         }
       ]
@@ -101,8 +109,16 @@
             "lines",
             "light"
           ],
-          "seconds": 2.2,
-          "text": "今日こそ、PCで作る。"
+          "seconds": 3.0,
+          "text": "今日こそ、PCで作る。",
+          "flow": {
+            "approved": true,
+            "range": [
+              0.2,
+              1.9
+            ],
+            "speed": 1.5
+          }
         }
       ]
     },
@@ -143,11 +159,17 @@
             "lines",
             "shake"
           ],
-          "seconds": 2.4,
+          "seconds": 4.0,
           "text": "二回も押したら、壊れんか…",
           "flow": {
             "from": "SH_EXP_TROUBLED",
-            "motion": "His worried face suddenly turns into panic: eyes go wide, mouth opens wide, a sweat drop pops out."
+            "motion": "His worried face suddenly turns into panic: eyes go wide, mouth opens wide, a sweat drop pops out.",
+            "approved": true,
+            "range": [
+              0.9,
+              3.2
+            ],
+            "speed": 1.5
           }
         }
       ]
@@ -171,7 +193,7 @@
           "fx": [
             "light"
           ],
-          "seconds": 2.6,
+          "seconds": 2.5,
           "text": "少しだけ速く、２回。それだけです。",
           "sfx": {
             "text": "カチカチッ",
@@ -180,6 +202,14 @@
               0.3
             ],
             "size": 80
+          },
+          "flow": {
+            "approved": true,
+            "range": [
+              0,
+              2.3
+            ],
+            "speed": 1.5
           }
         }
       ]
@@ -195,7 +225,7 @@
           "asset": "SH_POSE_PC_CONFUSED",
           "crop": "full",
           "h": 0.8,
-          "seconds": 1.2,
+          "seconds": 2.0,
           "sfx": {
             "text": "カチカチッ",
             "at": [
@@ -203,6 +233,14 @@
               0.35
             ],
             "size": 80
+          },
+          "flow": {
+            "approved": true,
+            "range": [
+              0,
+              1.7
+            ],
+            "speed": 1.5
           }
         },
         {
@@ -212,7 +250,7 @@
           "fx": [
             "flash"
           ],
-          "seconds": 2.4,
+          "seconds": 3.5,
           "text": "開いたぞ、\nにゃーさん！",
           "at": [
             0.2,
@@ -237,7 +275,13 @@
           },
           "flow": {
             "from": "SH_MASTER_2D",
-            "motion": "He breaks into a big open-mouthed smile and raises his right fist up high in one quick motion."
+            "motion": "He breaks into a big open-mouthed smile and raises his right fist up high in one quick motion.",
+            "approved": true,
+            "range": [
+              0.2,
+              2.4
+            ],
+            "speed": 1.5
           }
         }
       ]
@@ -255,8 +299,16 @@
             "light"
           ],
           "h": 0.8,
-          "seconds": 2.2,
-          "text": "紙もハンコも大事。"
+          "seconds": 4.0,
+          "text": "紙もハンコも大事。",
+          "flow": {
+            "approved": true,
+            "range": [
+              0.8,
+              4.0
+            ],
+            "speed": 1.5
+          }
         },
         {
           "asset": "DUO_PC_HELP",
