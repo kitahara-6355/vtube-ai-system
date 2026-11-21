@@ -5,6 +5,7 @@
   "funnelStage": 1,
   "style": "monologue",
   "background": "BG_OFFICE_WIDE",
+  "turn": "fade",
   "appeal": {
     "shacho": "現場ではプロなのに、PCの前だと赤ちゃん",
     "nyasan": "表はやさしいのに、心の声は辛口。そのギャップがいい"
@@ -60,7 +61,7 @@
             ],
             "speed": 1.5
           },
-          "captionAt": "bl"
+          "captionAt": "tr"
         }
       ]
     },
