@@ -60,7 +60,7 @@ description: 「DX事務所のにゃーさん」のYouTubeショートを1本作
    python tools/manga.py render episodes/EPxxx_<slug>.json   # 動く漫画の mp4
    ```
 5. 生成された絵を `assets/img/<need の id>.png` に置くと自動で差し替わる。Flow の動画は `assets/clips/EPxxx/<コマ番号>.mp4` に置き、北原さんが確認シートを見て採用したら `flow` に `"approved": true` を書く。
-6. 通し版の直しはスプレッドシートで回す（2026-11-21）。`python tools/sheet.py push episodes/EPxxx_<slug>.json --folder <Driveフォルダ>` で「直す所」（秒・文字・場面の文字と位置・擬音・動画の区間と速さ・ページの切り替え）だけのシートを作り、北原さんがスマホで数字を直したら `python tools/sheet.py pull …` → `render`。空欄は「触らない」。EP001 の v1→v11 の直しは全部この列の数字だった。
+6. 通し版の直しは、北原さんがチャットで秒や場所を指摘し、Claude が台本に入れて書き出す（北原さんはシートに書き込まない。2026-11-21）。直した所の記録と見える化に `python tools/sheet.py push episodes/EPxxx_<slug>.json --folder <Driveフォルダ>` で「直す所」（秒・文字・場面の文字と位置・擬音・動画の区間と速さ・ページの切り替え）のシートを Claude が更新する。`pull` はシートが直された時だけ使う（空欄は「触らない」）。EP001 の v1→v11 の直しは全部この列の数字だった。
 
 ## やらないこと
 - Vertex AI、Gemini API の画像・動画モデル、GCP 上の Claude など従量課金のサービスを呼ぶこと。
