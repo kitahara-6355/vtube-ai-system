@@ -59,7 +59,8 @@
               2.4
             ],
             "speed": 1.5
-          }
+          },
+          "captionAt": "bl"
         }
       ]
     },
@@ -73,7 +74,7 @@
           "asset": "NY_POSE_EXASPERATED",
           "crop": "face",
           "h": 0.8,
-          "seconds": 3.0,
+          "seconds": 2.0,
           "text": "社長、マウスを両手で包んでる…\n石鹸じゃないです…"
         }
       ]
@@ -159,7 +160,7 @@
             "lines",
             "shake"
           ],
-          "seconds": 4.0,
+          "seconds": 3.0,
           "text": "二回も押したら、壊れんか…",
           "flow": {
             "from": "SH_EXP_TROUBLED",
@@ -250,7 +251,7 @@
           "fx": [
             "flash"
           ],
-          "seconds": 3.5,
+          "seconds": 2.5,
           "text": "開いたぞ、\nにゃーさん！",
           "at": [
             0.2,
@@ -299,7 +300,7 @@
             "light"
           ],
           "h": 0.8,
-          "seconds": 4.0,
+          "seconds": 2.5,
           "text": "紙もハンコも大事。",
           "flow": {
             "approved": true,

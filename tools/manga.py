@@ -12,6 +12,7 @@ Flow の動画（第3段階）に1コマずつ置き換える。外部APIは呼�
 from __future__ import annotations
 
 import argparse
+import os
 import math
 import subprocess
 import sys
@@ -473,12 +474,13 @@ def subtitle(overlay: Image.Image, box, text: str, color: tuple) -> None:
         d.text((cx, by0 + 14 + lh * i + lh / 2), s, font=f, fill=(30, 30, 40), anchor="mm")
 
 
-def caption(overlay: Image.Image, box, text: str) -> None:
-    """状況キャプション（「月曜、9時。」など）。場面が変わるコマの左上に小さく出す。"""
+def caption(overlay: Image.Image, box, text: str, at: str = "tl") -> None:
+    """状況キャプション（「月曜、9時。」など）。場面が変わるコマの隅に小さく出す（at: tl/tr/bl/br）。"""
     d = ImageDraw.Draw(overlay)
     f = ny.font(38)
-    x, y = box[0] + 22, box[1] + 22
     w = f.getlength(text) + 36
+    x = box[0] + 22 if at[1] == "l" else box[2] - 22 - w
+    y = box[1] + 22 if at[0] == "t" else box[3] - 22 - 60
     d.rectangle((x, y, x + w, y + 60), fill=(20, 20, 20, 225))
     d.text((x + 18, y + 30), text, font=f, fill=(255, 255, 255), anchor="lm")
 
@@ -598,7 +600,7 @@ def build(episode: dict, characters: dict, assets_list: list) -> list[Page]:
                 who = characters["characters"][p.get("speaker", scene["speaker"])]
                 subtitle(pl.overlay, box, p["text"], ny.hex_rgb(who["telopColor"]))
             if p.get("caption"):
-                caption(pl.overlay, box, p["caption"])
+                caption(pl.overlay, box, p["caption"], p.get("captionAt", "tl"))
             if placeholder:
                 d = ImageDraw.Draw(pl.overlay)
                 d.rounded_rectangle((box[0] + 14, box[3] - 62, box[0] + 150, box[3] - 14), radius=10, fill=(255, 236, 180, 235))
@@ -733,7 +735,9 @@ def sheet(episode_path: Path) -> Path:
 
 
 def render(episode_path: Path) -> Path:
+    global TURN_STYLE
     episode = ny.load_json(episode_path)
+    TURN_STYLE = os.environ.get("MANGA_TURN") or episode.get("turn", TURN_STYLE)
     characters = ny.load_json(ny.CHARACTERS)
     channel = characters["channel"]["name"]
     pages = build(episode, characters, ny.load_json(ny.LIBRARY)["assets"])
@@ -772,12 +776,31 @@ def render(episode_path: Path) -> Path:
     return video
 
 
+TURN_STYLE = "slide"  # ページの切り替え: slide（左から送る）/ fade（重ねて入れ替え）/ scroll（下から上へ送る）/ flash（白く光って切り替え）
+
+
 def turn(prev: Image.Image, nxt: Image.Image, k: float, header_h: int = 231) -> Image.Image:
-    """ページをめくる（新しいページが左から入る。日本の漫画の向き）。"""
+    """ページの切り替え。TURN_STYLE で形を選ぶ（2026-11-21 北原さん: 左からの送りに違和感、別の形を比べる）。"""
+    top = 0 if nxt.getpixel((5, 5))[:3] != prev.getpixel((5, 5))[:3] else header_h  # ヘッダーは動かさない
+    if TURN_STYLE == "fade":
+        img = prev.copy()
+        img.paste(Image.blend(prev.crop((0, top, W, H)), nxt.crop((0, top, W, H)), k), (0, top))
+        return img
+    if TURN_STYLE == "flash":
+        img = (prev if k < 0.5 else nxt).copy()
+        a = 1 - abs(k - 0.5) * 2  # 真ん中でいちばん白い
+        img.paste(Image.blend(img.crop((0, top, W, H)), Image.new(img.mode, (W, H - top), (255, 255, 255)), a * 0.9), (0, top))
+        return img
     k = 1 - (1 - k) ** 2
     img = prev.copy()
+    if TURN_STYLE == "scroll":
+        y = int(H - (H - top) * k)
+        img.paste(prev.crop((0, top, W, H)), (0, y - (H - top)))
+        img.paste(nxt.crop((0, top, W, H)), (0, y))
+        if top:
+            img.paste(prev.crop((0, 0, W, top)), (0, 0))
+        return img
     x = int(-W + W * k)
-    top = 0 if nxt.getpixel((5, 5))[:3] != prev.getpixel((5, 5))[:3] else header_h  # ヘッダーは動かさない
     img.paste(nxt.crop((0, top, W, H)), (x, top))
     if x + W < W:
         ImageDraw.Draw(img).rectangle((x + W, top, x + W + 6, H), fill=(120, 120, 120, 255))
