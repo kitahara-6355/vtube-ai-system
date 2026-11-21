@@ -33,6 +33,7 @@ MONO_BOTTOM, SAFE_RIGHT, SUB_ROOM = 1380, 900, 120
 MONO_HEADER, MONO_TOP, MONO_MARGIN = 140, 156, 18
 FADE, TURN = 0.18, 0.35          # コマが現れる秒数、ページをめくる秒数
 ZOOM = 0.035                     # 表示中のコマをゆっくり寄せる量
+HOLD_ZOOM_RATE = ZOOM / 2.0      # 止まって見える所の寄せの標準（1秒あたり）。2026-11-21 北原さん: EP001 22〜23秒（2秒のコマに3.5%）がしっくり
 INK, PAPER = (20, 20, 20), (255, 255, 255)
 VERT_FONT = "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf"
 ZEN = str.maketrans("0123456789!?", "０１２３４５６７８９！？")
@@ -535,7 +536,10 @@ def clip_frames(clip: Path, size: tuple[int, int], seconds: float, rng=None, flo
     hold = need - len(frames)
     if hold > 0:
         # 動きのあとは最後の絵で止め、コマの中でゆっくり寄せる（2026-11-21 北原さん: 間延びはズームアップで）
-        last, z = frames[-1], float(flow.get("holdZoom", 0.0))
+        last, z = frames[-1], flow.get("holdZoom", 0.0)
+        if z is True:  # 標準: コマ全体の寄せと合わせて HOLD_ZOOM_RATE になるよう、止めの間だけ足す
+            z = max(0.0, HOLD_ZOOM_RATE - ZOOM / seconds) * hold / FPS
+        z = float(z)
         w, h = last.size
         cx, cy = flow.get("zoomAt", (0.5, 0.38))
         for k in range(1, hold + 1):
